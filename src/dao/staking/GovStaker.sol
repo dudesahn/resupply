@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { MultiRewardsDistributor } from 'src/dao/staking/MultiRewardsDistributor.sol';
-import { IERC20, SafeERC20 } from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import { EpochTracker } from 'src/dependencies/EpochTracker.sol';
-import { DelegatedOps } from 'src/dependencies/DelegatedOps.sol';
-import { GovStakerEscrow } from 'src/dao/staking/GovStakerEscrow.sol';
-import { IResupplyRegistry } from "src/interfaces/IResupplyRegistry.sol";
-import { IGovStaker } from "src/interfaces/IGovStaker.sol";
+import {MultiRewardsDistributor} from "src/dao/staking/MultiRewardsDistributor.sol";
+import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {EpochTracker} from "src/dependencies/EpochTracker.sol";
+import {DelegatedOps} from "src/dependencies/DelegatedOps.sol";
+import {GovStakerEscrow} from "src/dao/staking/GovStakerEscrow.sol";
+import {IResupplyRegistry} from "src/interfaces/IResupplyRegistry.sol";
+import {IGovStaker} from "src/interfaces/IGovStaker.sol";
 
 contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     using SafeERC20 for IERC20;
@@ -19,7 +19,8 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
 
     // Account tracking state vars.
     mapping(address account => AccountData data) public accountData;
-    mapping(address account => mapping(uint epoch => uint weight)) private accountWeightAt;
+    mapping(address account => mapping(uint epoch => uint weight))
+        private accountWeightAt;
 
     // Global weight tracking state vars.
     uint112 public totalPending;
@@ -59,7 +60,6 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     event CooldownEpochsUpdated(uint24 newDuration);
     event PermaStakerSet(address indexed account);
 
-
     /* ========== CONSTRUCTOR ========== */
 
     /**
@@ -89,12 +89,19 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
         return _stake(_account, _amount);
     }
 
-    function _stake(address _account, uint _amount) internal updateReward(_account) returns (uint) {
-        if (_amount == 0 || _amount >= type(uint112).max) revert InvalidAmount();
+    function _stake(
+        address _account,
+        uint _amount
+    ) internal updateReward(_account) returns (uint) {
+        if (_amount == 0 || _amount >= type(uint112).max)
+            revert InvalidAmount();
 
         // Before going further, let's sync our account and total weights
         uint systemEpoch = getEpoch();
-        (AccountData memory acctData, ) = _checkpointAccount(_account, systemEpoch);
+        (AccountData memory acctData, ) = _checkpointAccount(
+            _account,
+            systemEpoch
+        );
         _checkpointTotal(systemEpoch);
 
         acctData.pendingStake += uint112(_amount);
@@ -103,7 +110,11 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
         accountData[_account] = acctData;
         _totalSupply += _amount;
 
-        IERC20(_stakeToken).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(_stakeToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
         emit Staked(_account, systemEpoch, _amount);
 
         return _amount;
@@ -112,9 +123,15 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     /**
         @notice Request a cooldown tokens from the contract.
     */
-    function cooldown(address _account, uint _amount) external callerOrDelegated(_account) returns (uint) {
+    function cooldown(
+        address _account,
+        uint _amount
+    ) external callerOrDelegated(_account) returns (uint) {
         uint systemEpoch = getEpoch();
-        (AccountData memory acctData, ) = _checkpointAccount(_account, systemEpoch);
+        (AccountData memory acctData, ) = _checkpointAccount(
+            _account,
+            systemEpoch
+        );
         require(!acctData.isPermaStaker, "perma staker account");
         return _cooldown(_account, _amount, acctData, systemEpoch); // triggers updateReward
     }
@@ -122,18 +139,29 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     /**
      * @notice Initiate cooldown and claim any outstanding rewards.
      */
-    function exit(address _account) external nonReentrant callerOrDelegated(_account) returns (uint) {
+    function exit(
+        address _account
+    ) external nonReentrant callerOrDelegated(_account) returns (uint) {
         uint systemEpoch = getEpoch();
-        (AccountData memory acctData, ) = _checkpointAccount(_account, systemEpoch);
+        (AccountData memory acctData, ) = _checkpointAccount(
+            _account,
+            systemEpoch
+        );
         require(!acctData.isPermaStaker, "perma staker account");
         _cooldown(_account, acctData.realizedStake, acctData, systemEpoch); // triggers updateReward
         _getRewardFor(_account);
         return acctData.realizedStake;
     }
 
-    function _cooldown(address _account, uint _amount, AccountData memory acctData, uint systemEpoch) internal updateReward(_account) returns (uint) {
+    function _cooldown(
+        address _account,
+        uint _amount,
+        AccountData memory acctData,
+        uint systemEpoch
+    ) internal updateReward(_account) returns (uint) {
         if (_amount == 0 || _amount > type(uint112).max) revert InvalidAmount();
-        if (acctData.realizedStake < _amount) revert InsufficientRealizedStake();
+        if (acctData.realizedStake < _amount)
+            revert InsufficientRealizedStake();
         _checkpointTotal(systemEpoch);
 
         acctData.realizedStake -= uint112(_amount);
@@ -145,7 +173,9 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
         _totalSupply -= _amount;
 
         UserCooldown memory userCooldown = cooldowns[_account];
-        userCooldown.end = uint104(block.timestamp + (cooldownEpochs * epochLength));
+        userCooldown.end = uint104(
+            block.timestamp + (cooldownEpochs * epochLength)
+        );
         userCooldown.amount += uint152(_amount);
         cooldowns[_account] = userCooldown;
 
@@ -155,15 +185,22 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
         return _amount;
     }
 
-    function unstake(address _account, address _receiver) external callerOrDelegated(_account) returns (uint) {
+    function unstake(
+        address _account,
+        address _receiver
+    ) external callerOrDelegated(_account) returns (uint) {
         return _unstake(_account, _receiver);
     }
 
-    function _unstake(address _account, address _receiver) internal returns (uint) {
+    function _unstake(
+        address _account,
+        address _receiver
+    ) internal returns (uint) {
         UserCooldown storage userCooldown = cooldowns[_account];
         uint256 amount = userCooldown.amount;
-        if(amount == 0) return 0;
-        if(block.timestamp < userCooldown.end && cooldownEpochs != 0) revert InvalidCooldown();
+        if (amount == 0) return 0;
+        if (block.timestamp < userCooldown.end && cooldownEpochs != 0)
+            revert InvalidCooldown();
         delete cooldowns[_account];
         escrow.withdraw(_receiver, amount);
         emit Unstaked(_account, amount);
@@ -178,7 +215,9 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
         @dev Prefer to use this function over it's view counterpart for
              contract -> contract interactions.
     */
-    function checkpointAccount(address _account) external returns (AccountData memory acctData, uint weight) {
+    function checkpointAccount(
+        address _account
+    ) external returns (AccountData memory acctData, uint weight) {
         (acctData, weight) = _checkpointAccount(_account, getEpoch());
         accountData[_account] = acctData;
     }
@@ -222,7 +261,9 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
             if (realized != 0) {
                 weight = accountWeightAt[_account][lastUpdateEpoch];
                 while (lastUpdateEpoch < _systemEpoch) {
-                    unchecked { lastUpdateEpoch++; }
+                    unchecked {
+                        lastUpdateEpoch++;
+                    }
                     accountWeightAt[_account][lastUpdateEpoch] = weight;
                 }
             }
@@ -239,7 +280,9 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
 
         // Fill in any missed epochs.
         while (lastUpdateEpoch < _systemEpoch) {
-            unchecked { lastUpdateEpoch++; }
+            unchecked {
+                lastUpdateEpoch++;
+            }
             accountWeightAt[_account][lastUpdateEpoch] = weight;
         }
 
@@ -285,7 +328,9 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
         totalPending = 0;
 
         while (lastUpdateEpoch < systemEpoch) {
-            unchecked { lastUpdateEpoch++; }
+            unchecked {
+                lastUpdateEpoch++;
+            }
             totalWeightAt[lastUpdateEpoch] = weight;
         }
 
@@ -295,7 +340,8 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     /* ========== RESTRICTED FUNCTIONS ========== */
 
     function setCooldownEpochs(uint24 _epochs) external onlyOwner {
-        if (_epochs * epochLength > MAX_COOLDOWN_DURATION) revert InvalidDuration();
+        if (_epochs * epochLength > MAX_COOLDOWN_DURATION)
+            revert InvalidDuration();
         cooldownEpochs = _epochs;
         emit CooldownEpochsUpdated(_epochs);
     }
@@ -332,7 +378,10 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     /**
         @notice Get the weight for an account in a given epoch
     */
-    function getAccountWeightAt(address _account, uint _epoch) public view returns (uint) {
+    function getAccountWeightAt(
+        address _account,
+        uint _epoch
+    ) public view returns (uint) {
         if (_epoch > getEpoch()) return 0;
 
         AccountData memory acctData = accountData[_account];
@@ -377,7 +426,9 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     /// @notice Get the amount of tokens that have passed cooldown.
     /// @param _account The account to query.
     /// @return . amount of tokens that have passed cooldown.
-    function getUnstakableAmount(address _account) external view returns (uint) {
+    function getUnstakableAmount(
+        address _account
+    ) external view returns (uint) {
         UserCooldown memory userCooldown = cooldowns[_account];
         if (isCooldownEnabled() && block.timestamp < userCooldown.end) return 0;
         return userCooldown.amount;
@@ -394,11 +445,16 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
     /* ========== PERMA STAKER FUNCTIONS ========== */
 
     /**
-     * @notice  Set account as a permanent staker, preventing them from ever unstaking their staked tokens. 
+     * @notice  Set account as a permanent staker, preventing them from ever unstaking their staked tokens.
      *          This action cannot be undone, and is irreversible.
      */
-    function irreversiblyCommitAccountAsPermanentStaker(address _account) external callerOrDelegated(_account) {
-        require(!accountData[_account].isPermaStaker, "already perma staker account");
+    function irreversiblyCommitAccountAsPermanentStaker(
+        address _account
+    ) external callerOrDelegated(_account) {
+        require(
+            !accountData[_account].isPermaStaker,
+            "already perma staker account"
+        );
         accountData[_account].isPermaStaker = true;
         emit PermaStakerSet(_account);
     }
@@ -416,10 +472,18 @@ contract GovStaker is MultiRewardsDistributor, EpochTracker, DelegatedOps {
         IGovStaker staker = IGovStaker(registry.staker());
         require(address(this) != address(staker), "!migrate");
         uint systemEpoch = getEpoch();
-        (AccountData memory acctData, ) = _checkpointAccount(msg.sender, systemEpoch);
+        (AccountData memory acctData, ) = _checkpointAccount(
+            msg.sender,
+            systemEpoch
+        );
         require(acctData.isPermaStaker, "not perma staker account");
         if (acctData.realizedStake > 0) {
-            _cooldown(msg.sender, acctData.realizedStake, acctData, systemEpoch); // triggers updateReward
+            _cooldown(
+                msg.sender,
+                acctData.realizedStake,
+                acctData,
+                systemEpoch
+            ); // triggers updateReward
             amount = _unstake(msg.sender, address(this));
             _getRewardFor(msg.sender);
             IERC20(_stakeToken).approve(address(staker), amount);

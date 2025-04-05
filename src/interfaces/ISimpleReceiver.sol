@@ -2,7 +2,10 @@
 pragma solidity 0.8.28;
 
 interface ISimpleReceiver {
-    function initialize(string memory _name, address[] memory _approvedClaimers) external;
+    function initialize(
+        string memory _name,
+        address[] memory _approvedClaimers
+    ) external;
 
     function getReceiverId() external view returns (uint256 id);
 

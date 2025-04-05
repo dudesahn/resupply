@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { GovToken } from "src/dao/GovToken.sol";
+import {GovToken} from "src/dao/GovToken.sol";
 
 contract GovTokenHarness is GovToken {
     constructor(

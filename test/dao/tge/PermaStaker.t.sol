@@ -1,14 +1,13 @@
 pragma solidity ^0.8.22;
 
 import "forge-std/Test.sol";
-import { Setup } from "../../Setup.sol";
-import { IGovStaker } from "../../../src/interfaces/IGovStaker.sol";
-import { GovStaker } from "../../../src/dao/staking/GovStaker.sol";
-import { VestManagerInitParams } from "../../helpers/VestManagerInitParams.sol";
-import { MockGovStaker } from "../../mocks/MockGovStaker.sol";
+import {Setup} from "../../Setup.sol";
+import {IGovStaker} from "../../../src/interfaces/IGovStaker.sol";
+import {GovStaker} from "../../../src/dao/staking/GovStaker.sol";
+import {VestManagerInitParams} from "../../helpers/VestManagerInitParams.sol";
+import {MockGovStaker} from "../../mocks/MockGovStaker.sol";
 
 contract PermaStakerTest is Setup {
-
     function setUp() public override {
         super.setUp();
     }
@@ -16,52 +15,55 @@ contract PermaStakerTest is Setup {
     function test_SafeExecute() public {
         vm.prank(permaStaker1.owner());
         permaStaker1.safeExecute(
-            address(govToken), 
+            address(govToken),
             abi.encodeWithSelector(govToken.approve.selector, user1, 100e18)
         );
 
         vm.prank(user2);
         vm.expectRevert("!ownerOrOperator");
         permaStaker1.safeExecute(
-            address(govToken), 
+            address(govToken),
             abi.encodeWithSelector(govToken.approve.selector, user1, 100e18)
         );
 
-        vm.expectRevert( "CallFailed");
+        vm.expectRevert("CallFailed");
         vm.prank(user1);
         permaStaker1.safeExecute(
-            address(staker), 
-            abi.encodeWithSelector(staker.cooldown.selector, address(permaStaker1), 100e18)
+            address(staker),
+            abi.encodeWithSelector(
+                staker.cooldown.selector,
+                address(permaStaker1),
+                100e18
+            )
         );
     }
-
 
     function test_Execute() public {
         vm.expectRevert("!ownerOrOperator");
         permaStaker1.execute(
-            address(govToken), 
+            address(govToken),
             abi.encodeWithSelector(
-                govToken.approve.selector, 
-                address(permaStaker1), 
+                govToken.approve.selector,
+                address(permaStaker1),
                 100e18
             )
         );
 
         vm.startPrank(permaStaker1.owner());
         permaStaker1.execute(
-            address(govToken), 
+            address(govToken),
             abi.encodeWithSelector(
-                govToken.approve.selector, 
-                address(permaStaker1), 
+                govToken.approve.selector,
+                address(permaStaker1),
                 100e18
             )
         );
 
         permaStaker1.execute(
-            address(govToken), 
+            address(govToken),
             abi.encodeWithSelector(
-                govToken.transfer.selector, 
-                address(permaStaker1), 
+                govToken.transfer.selector,
+                address(permaStaker1),
                 100e18
             )
         );
@@ -76,7 +78,6 @@ contract PermaStakerTest is Setup {
         vm.startPrank(address(permaStaker1));
         staker.stake(address(permaStaker1), govBalance);
         assertGt(staker.balanceOf(address(permaStaker1)), balance);
-
 
         balance = staker.balanceOf(address(permaStaker1));
         deal(address(govToken), address(permaStaker1), 1000e18);
@@ -107,8 +108,8 @@ contract PermaStakerTest is Setup {
         uint256 amount = permaStaker1.claimAndStake();
         assertGt(amount, 0);
         assertEq(
-            balance + amount, 
-            staker.balanceOf(address(permaStaker1)), 
+            balance + amount,
+            staker.balanceOf(address(permaStaker1)),
             "Amount not staked"
         );
     }
@@ -159,8 +160,14 @@ contract PermaStakerTest is Setup {
         uint256 amount = permaStaker1.claimAndStake();
         assertGt(amount, 0);
 
-        MockGovStaker newStaker = new MockGovStaker(address(core), address(registry), address(govToken), 2, address(staker));
-        vm.label(address(newStaker), 'NewStaker');
+        MockGovStaker newStaker = new MockGovStaker(
+            address(core),
+            address(registry),
+            address(govToken),
+            2,
+            address(staker)
+        );
+        vm.label(address(newStaker), "NewStaker");
         vm.prank(address(permaStaker1));
         newStaker.setDelegateApproval(address(staker), true); // Must give approval for migration
 
@@ -171,30 +178,62 @@ contract PermaStakerTest is Setup {
 
         skip(staker.epochLength());
         staker.checkpointAccount(address(permaStaker1));
-        (uint112 realizedStake, uint112 pendingStake,,) = staker.accountData(address(permaStaker1));
-        assertEq(newStaker.isPermaStaker(address(permaStaker1)), false, 'should not yet beperma staker');
+        (uint112 realizedStake, uint112 pendingStake, , ) = staker.accountData(
+            address(permaStaker1)
+        );
+        assertEq(
+            newStaker.isPermaStaker(address(permaStaker1)),
+            false,
+            "should not yet beperma staker"
+        );
 
         vm.prank(address(permaStaker1));
         uint256 amount2 = staker.migrateStake();
-        assertEq(amount2, amount + startAmount, 'mismatching amounts migrated vs claimed');
-        assertGt(amount2, 0, 'migrated amount not > 0');
-        assertEq(staker.balanceOf(address(permaStaker1)), 0, 'old staker balance not 0');
-        assertEq(newStaker.balanceOf(address(permaStaker1)), amount + startAmount, 'new staker balance not equal to claimed amount');
-        assertEq(newStaker.isPermaStaker(address(permaStaker1)), true, 'perma staker not set');
+        assertEq(
+            amount2,
+            amount + startAmount,
+            "mismatching amounts migrated vs claimed"
+        );
+        assertGt(amount2, 0, "migrated amount not > 0");
+        assertEq(
+            staker.balanceOf(address(permaStaker1)),
+            0,
+            "old staker balance not 0"
+        );
+        assertEq(
+            newStaker.balanceOf(address(permaStaker1)),
+            amount + startAmount,
+            "new staker balance not equal to claimed amount"
+        );
+        assertEq(
+            newStaker.isPermaStaker(address(permaStaker1)),
+            true,
+            "perma staker not set"
+        );
 
-        MockGovStaker newStaker2 = new MockGovStaker(address(core), address(registry), address(govToken), 2, address(newStaker));
-        vm.label(address(newStaker2), 'NewStaker2');
+        MockGovStaker newStaker2 = new MockGovStaker(
+            address(core),
+            address(registry),
+            address(govToken),
+            2,
+            address(newStaker)
+        );
+        vm.label(address(newStaker2), "NewStaker2");
         vm.prank(address(core));
         registry.setStaker(address(newStaker2));
         vm.prank(address(core));
         newStaker.setCooldownEpochs(0);
 
         skip(staker.epochLength());
-        
+
         vm.startPrank(address(permaStaker1));
         newStaker2.setDelegateApproval(address(newStaker), true); // Must give approval for migration
         newStaker.migrateStake();
-        assertEq(newStaker2.balanceOf(address(permaStaker1)), amount + startAmount, 'new staker balance not equal to claimed amount');
+        assertEq(
+            newStaker2.balanceOf(address(permaStaker1)),
+            amount + startAmount,
+            "new staker balance not equal to claimed amount"
+        );
         vm.stopPrank();
     }
 
@@ -206,14 +245,15 @@ contract PermaStakerTest is Setup {
 
     function setupVest() public {
         if (!vestManager.initialized()) {
-            VestManagerInitParams.InitParams memory params = VestManagerInitParams.getInitParams(
-                address(permaStaker1),
-                address(permaStaker2),
-                address(treasury)
-            );
+            VestManagerInitParams.InitParams
+                memory params = VestManagerInitParams.getInitParams(
+                    address(permaStaker1),
+                    address(permaStaker2),
+                    address(treasury)
+                );
             vm.prank(address(core));
             vestManager.setInitializationParams(
-                params.maxRedeemable,      // _maxRedeemable
+                params.maxRedeemable, // _maxRedeemable
                 params.merkleRoots,
                 params.nonUserTargets,
                 params.durations,
@@ -223,14 +263,20 @@ contract PermaStakerTest is Setup {
     }
 
     function deployNewStakerAndSetInRegistry() public returns (address) {
-        MockGovStaker newStaker = new MockGovStaker(address(core), address(registry), address(govToken), 2, address(staker));
-        vm.label(address(newStaker), 'NewStaker');
+        MockGovStaker newStaker = new MockGovStaker(
+            address(core),
+            address(registry),
+            address(govToken),
+            2,
+            address(staker)
+        );
+        vm.label(address(newStaker), "NewStaker");
         vm.prank(address(core));
         registry.setStaker(address(newStaker));
         vm.prank(address(core));
         staker.setCooldownEpochs(0);
         skip(staker.epochLength());
-        
+
         return address(newStaker);
     }
 }

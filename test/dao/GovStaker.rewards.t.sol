@@ -2,14 +2,14 @@ pragma solidity ^0.8.22;
 
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { GovStaker } from "../../src/dao/staking/GovStaker.sol";
-import { GovStakerEscrow } from "../../src/dao/staking/GovStakerEscrow.sol";
-import { MockToken } from "../mocks/MockToken.sol";
-import { IGovStakerEscrow } from "../../src/interfaces/IGovStakerEscrow.sol";
-import { IGovStaker } from "../../src/interfaces/IGovStaker.sol";
-import { Setup } from "../Setup.sol";
-import { MultiRewardsDistributor } from "../../src/dao/staking/MultiRewardsDistributor.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {GovStaker} from "../../src/dao/staking/GovStaker.sol";
+import {GovStakerEscrow} from "../../src/dao/staking/GovStakerEscrow.sol";
+import {MockToken} from "../mocks/MockToken.sol";
+import {IGovStakerEscrow} from "../../src/interfaces/IGovStakerEscrow.sol";
+import {IGovStaker} from "../../src/interfaces/IGovStaker.sol";
+import {Setup} from "../Setup.sol";
+import {MultiRewardsDistributor} from "../../src/dao/staking/MultiRewardsDistributor.sol";
 
 contract GovStakerRewardsTest is Setup {
     MockToken public rewardToken;
@@ -30,11 +30,21 @@ contract GovStakerRewardsTest is Setup {
     uint256 public maxFuzzAmount = 1e30;
     uint256 public minFuzzAmount = 10_000;
 
-    event RewardPaid(address indexed user, address indexed rewardToken, address indexed claimTo, uint256 reward);
-             
+    event RewardPaid(
+        address indexed user,
+        address indexed rewardToken,
+        address indexed claimTo,
+        uint256 reward
+    );
+
     function setUp() public override {
         super.setUp();
-        staker = new GovStaker(address(core), address(registry), address(govToken), 2);
+        staker = new GovStaker(
+            address(core),
+            address(registry),
+            address(govToken),
+            2
+        );
         owner = address(core);
         rewardToken = new MockToken("RewardToken1", "RT1");
         rewardToken2 = new MockToken("RewardToken2", "RT2");
@@ -52,7 +62,7 @@ contract GovStakerRewardsTest is Setup {
         users[0] = user1;
         users[1] = user2;
         users[2] = user3;
-        for (uint256 i = 0; i < users.length; i++) {    
+        for (uint256 i = 0; i < users.length; i++) {
             vm.prank(users[i]);
             stakingToken.approve(address(staker), type(uint256).max);
             mintGovToken(users[i], 1_000_000 * 10 ** 18);
@@ -61,12 +71,10 @@ contract GovStakerRewardsTest is Setup {
 
     function test_RewardTooHigh() public {
         vm.prank(owner);
-        staker.addReward(
-            address(rewardToken), 
-            address(owner), 
-            3*WEEK
+        staker.addReward(address(rewardToken), address(owner), 3 * WEEK);
+        vm.expectRevert(
+            MultiRewardsDistributor.SupplyMustBeGreaterThanZero.selector
         );
-        vm.expectRevert(MultiRewardsDistributor.SupplyMustBeGreaterThanZero.selector);
         vm.prank(owner);
         staker.notifyRewardAmount(address(rewardToken), 1e18);
 
@@ -91,21 +99,18 @@ contract GovStakerRewardsTest is Setup {
 
     function test_setRewardsDistributor() public {
         vm.prank(owner);
-        staker.addReward(
-            address(rewardToken), 
-            address(owner), 
-            3*WEEK
-        );
-    
+        staker.addReward(address(rewardToken), address(owner), 3 * WEEK);
+
         vm.expectRevert("!core");
         staker.setRewardsDistributor(address(rewardToken), address(user1));
 
         vm.prank(owner);
         staker.setRewardsDistributor(address(rewardToken), address(user1));
 
-        (address rewardsDistributor, , , , , ) = staker.rewardData(address(rewardToken));
+        (address rewardsDistributor, , , , , ) = staker.rewardData(
+            address(rewardToken)
+        );
         assertEq(rewardsDistributor, address(user1));
-
     }
 
     function test_recoverERC20() public {
@@ -115,7 +120,7 @@ contract GovStakerRewardsTest is Setup {
         stakingToken.transfer(address(staker), 1e18);
 
         vm.prank(owner);
-        staker.addReward(address(rewardToken), owner, 3*WEEK);
+        staker.addReward(address(rewardToken), owner, 3 * WEEK);
 
         assertGt(stakingToken.balanceOf(address(staker)), staker.totalSupply());
 
@@ -141,14 +146,10 @@ contract GovStakerRewardsTest is Setup {
         depositStake();
 
         vm.prank(owner);
-        staker.addReward(
-            address(rewardToken), 
-            address(owner), 
-            3*WEEK
-        );
+        staker.addReward(address(rewardToken), address(owner), 3 * WEEK);
 
         vm.expectRevert(MultiRewardsDistributor.Unauthorized.selector);
-        staker.setRewardsDuration(address(rewardToken), 3*WEEK);
+        staker.setRewardsDuration(address(rewardToken), 3 * WEEK);
 
         vm.startPrank(owner);
         vm.expectRevert(MultiRewardsDistributor.MustBeGreaterThanZero.selector);
@@ -161,7 +162,7 @@ contract GovStakerRewardsTest is Setup {
         vm.expectRevert(MultiRewardsDistributor.RewardsStillActive.selector);
         staker.setRewardsDuration(address(rewardToken), WEEK);
 
-        skip(WEEK+1);
+        skip(WEEK + 1);
         staker.setRewardsDuration(address(rewardToken), WEEK);
     }
 
@@ -182,14 +183,14 @@ contract GovStakerRewardsTest is Setup {
 
         // airdrop some token to use for rewards
         airdrop(rewardToken, owner, 10e18);
-        
+
         // will revert if we haven't added it first
         vm.expectRevert(MultiRewardsDistributor.Unauthorized.selector);
         staker.notifyRewardAmount(address(rewardToken), 1e18);
 
         // add token to rewards array
         vm.startPrank(owner);
-        staker.addReward(address(rewardToken), owner, 3*WEEK);
+        staker.addReward(address(rewardToken), owner, 3 * WEEK);
         rewardToken.approve(address(staker), type(uint256).max);
         staker.notifyRewardAmount(address(rewardToken), 1e18);
         vm.stopPrank();
@@ -270,7 +271,7 @@ contract GovStakerRewardsTest is Setup {
 
         // can't adjust duration while we're in progress
         vm.expectRevert(MultiRewardsDistributor.RewardsStillActive.selector);
-        staker.setRewardsDuration(address(rewardToken), 3* 1 weeks);
+        staker.setRewardsDuration(address(rewardToken), 3 * 1 weeks);
 
         // can't add zero address
         vm.expectRevert(MultiRewardsDistributor.ZeroAddress.selector);
@@ -329,7 +330,9 @@ contract GovStakerRewardsTest is Setup {
         skip(staker.epochLength());
 
         // Assert that user with current earned rewards + realized balance gets rewards upon exit
-        (GovStaker.AccountData memory acctData, ) = staker.checkpointAccount(user1);
+        (GovStaker.AccountData memory acctData, ) = staker.checkpointAccount(
+            user1
+        );
         earned = staker.earned(user1, address(rewardToken2));
         assertGt(staker.balanceOf(user1), 0);
         assertGt(acctData.realizedStake, 0);
@@ -339,7 +342,7 @@ contract GovStakerRewardsTest is Setup {
         emit RewardPaid(user1, address(rewardToken2), user1, earned);
         staker.exit(user1);
 
-        (uint120 _realizedStake,,,) = staker.accountData(user1);
+        (uint120 _realizedStake, , , ) = staker.accountData(user1);
         assertEq(_realizedStake, 0);
         uint256 totalGainsTwo = rewardToken2.balanceOf(user1);
         assertGt(totalGainsTwo, currentProfitsTwo);
@@ -422,9 +425,7 @@ contract GovStakerRewardsTest is Setup {
         );
         assertEq(firstWeekRewards2, firstWeekRewards2CheckTwo);
         assertGt(firstWeekRewardsCheckTwo, firstWeekRewards);
-
     }
-
 
     function test_multiUserMultiRewards() public {
         // Here we should have multiple users, each with different amount
@@ -445,7 +446,8 @@ contract GovStakerRewardsTest is Setup {
         users[2] = user3;
 
         uint256 i;
-        for (; i < 20; i++) { // 20 weeks
+        for (; i < 20; i++) {
+            // 20 weeks
             for (uint256 x = 0; x < users.length; x++) {
                 uint bal = staker.balanceOf(users[x]);
                 if (i > 0 && i % 5 == 0 && x == 1) {
@@ -458,7 +460,9 @@ contract GovStakerRewardsTest is Setup {
                 }
                 if (bal > 0) {
                     staker.checkpointAccount(users[x]);
-                    (uint120 _realizedStake,,,) = staker.accountData(users[x]);
+                    (uint120 _realizedStake, , , ) = staker.accountData(
+                        users[x]
+                    );
                     if (_realizedStake > 0) {
                         vm.prank(users[x]);
                         staker.cooldown(users[x], bal / (x + 2));
@@ -517,7 +521,7 @@ contract GovStakerRewardsTest is Setup {
             uint256 lastUpdateTime,
             uint256 rewardPerTokenStored
         ) = staker.rewardData(_asset);
-        address distributor =  rewardsDistributor;
+        address distributor = rewardsDistributor;
         MockToken(_asset).mint(distributor, _amount);
         vm.prank(distributor);
         staker.notifyRewardAmount(_asset, _amount);
@@ -581,11 +585,7 @@ contract GovStakerRewardsTest is Setup {
     function addReward() public {
         deal(address(rewardToken), address(owner), 1_000_000e18);
         vm.prank(owner);
-        staker.addReward(
-            address(rewardToken), 
-            address(owner), 
-            3*WEEK
-        );
+        staker.addReward(address(rewardToken), address(owner), 3 * WEEK);
         vm.prank(owner);
         staker.notifyRewardAmount(address(rewardToken), 1_000_000e18);
     }

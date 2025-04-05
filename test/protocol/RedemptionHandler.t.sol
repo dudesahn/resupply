@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { RedemptionHandler } from "src/protocol/RedemptionHandler.sol";
-import { Setup } from "test/Setup.sol";
-import { MockOracle } from "test/mocks/MockOracle.sol";
+import {RedemptionHandler} from "src/protocol/RedemptionHandler.sol";
+import {Setup} from "test/Setup.sol";
+import {MockOracle} from "test/mocks/MockOracle.sol";
 
 contract RedemptionHandlerTest is Setup {
     MockOracle mockOracle;
@@ -60,13 +60,16 @@ contract RedemptionHandlerTest is Setup {
         redemptionHandler.setDiscountInfo(
             1e17, // rate
             3e17, // max usage
-            2e16  // max discount
+            2e16 // max discount
         );
         vm.stopPrank();
     }
 
     function test_GetRedemptionFeePct() public {
-        uint256 feePct = redemptionHandler.getRedemptionFeePct(address(testPair), 10_000e18);
+        uint256 feePct = redemptionHandler.getRedemptionFeePct(
+            address(testPair),
+            10_000e18
+        );
         assertGt(feePct, 0, "Fee should be greater than 0");
         assertLe(feePct, 1e18, "Fee should not exceed 100%");
     }
@@ -74,8 +77,8 @@ contract RedemptionHandlerTest is Setup {
     function test_PreviewRedeem() public {
         uint256 redeemAmount = 1000e18;
         (
-            uint256 returnedUnderlying, 
-            uint256 returnedCollateral, 
+            uint256 returnedUnderlying,
+            uint256 returnedCollateral,
             uint256 fee
         ) = redemptionHandler.previewRedeem(address(testPair), redeemAmount);
         assertGt(fee, 0, "Fee should be greater than 0");

@@ -29,7 +29,11 @@ contract GovStakerStakingTest is Setup {
     }
 
     function test_InitialDeployment() public {
-        assertEq(address(staker.stakeToken()), address(stakingToken), "Stake token should be set correctly");
+        assertEq(
+            address(staker.stakeToken()),
+            address(stakingToken),
+            "Stake token should be set correctly"
+        );
     }
 
     function test_UnstakeWithZeroCooldownEpochs() public {
@@ -40,7 +44,11 @@ contract GovStakerStakingTest is Setup {
 
         uint unstakableAmount = staker.getUnstakableAmount(address(this));
         uint unstakedAmount = staker.unstake(address(this), address(this));
-        assertEq(unstakedAmount, unstakableAmount, "Unstaked amount should be equal to unstakable amount");
+        assertEq(
+            unstakedAmount,
+            unstakableAmount,
+            "Unstaked amount should be equal to unstakable amount"
+        );
     }
 
     function test_Stake() public {
@@ -48,11 +56,23 @@ contract GovStakerStakingTest is Setup {
         vm.prank(user1);
         staker.stake(user1, amountToStake);
 
-        assertEq(staker.balanceOf(user1), amountToStake, "Stake balance should be updated");
-        assertEq(stakingToken.balanceOf(address(staker)), amountToStake, "Token should be transferred to staker");
+        assertEq(
+            staker.balanceOf(user1),
+            amountToStake,
+            "Stake balance should be updated"
+        );
+        assertEq(
+            stakingToken.balanceOf(address(staker)),
+            amountToStake,
+            "Token should be transferred to staker"
+        );
         assertEq(staker.getAccountWeight(user1), 0, "Weight should be 0");
         vm.warp(block.timestamp + epochLength); // Test weight increase
-        assertEq(staker.getAccountWeight(user1), amountToStake, "Weight should be 0");
+        assertEq(
+            staker.getAccountWeight(user1),
+            amountToStake,
+            "Weight should be 0"
+        );
 
         vm.warp(block.timestamp + warmupWait() * 100);
         staker.checkpointAccount(user1);
@@ -62,18 +82,18 @@ contract GovStakerStakingTest is Setup {
 
     function test_AddReward() public {
         uint amountToStake = 100 * 10 ** 18;
-        
+
         // Add rewards
         vm.startPrank(staker.owner());
         staker.addReward(
             address(rewardToken1), // rewardsToken
-            address(this),         // distributor
-            60 * 60 * 24           // duration
+            address(this), // distributor
+            60 * 60 * 24 // duration
         );
         staker.addReward(
             address(rewardToken2), // rewardsToken
-            address(this),         // distributor
-            60 * 60 * 24        // duration
+            address(this), // distributor
+            60 * 60 * 24 // duration
         );
         vm.stopPrank();
         vm.warp(block.timestamp + 1 days);
@@ -94,77 +114,105 @@ contract GovStakerStakingTest is Setup {
     }
 
     function _getRealizedStake(address _account) internal returns (uint) {
-        (GovStaker.AccountData memory acctData, ) = staker.checkpointAccount(_account);
+        (GovStaker.AccountData memory acctData, ) = staker.checkpointAccount(
+            _account
+        );
         return acctData.realizedStake;
     }
 
     function _getPendingStake(address _account) internal returns (uint) {
-        (GovStaker.AccountData memory acctData, ) = staker.checkpointAccount(_account);
+        (GovStaker.AccountData memory acctData, ) = staker.checkpointAccount(
+            _account
+        );
         return acctData.pendingStake;
     }
 
     function test_StakeAndUnstake() public {
         uint amountToStake = stakingToken.balanceOf(user1);
         stakeSomeAndWait(user1, amountToStake);
-        
-        assertEq(staker.balanceOf(user1), amountToStake, "Stake should be updated correctly");
-        assertEq(stakingToken.balanceOf(address(staker)), amountToStake, "Tokens should be transferred to staker");
+
+        assertEq(
+            staker.balanceOf(user1),
+            amountToStake,
+            "Stake should be updated correctly"
+        );
+        assertEq(
+            stakingToken.balanceOf(address(staker)),
+            amountToStake,
+            "Tokens should be transferred to staker"
+        );
         vm.warp(block.timestamp + warmupWait()); // Warm up wait
         uint realizedStake = _getRealizedStake(user1);
-        assertEq(realizedStake, amountToStake, "Realized stake should be equal to staked amount");
+        assertEq(
+            realizedStake,
+            amountToStake,
+            "Realized stake should be equal to staked amount"
+        );
 
         // Initiate cooldown and unstake
         vm.startPrank(user1);
         staker.cooldown(user1, amountToStake);
         uint cooldownEpochs = staker.cooldownEpochs();
         skip(cooldownEpochs * epochLength + 1);
-        
-        (uint104 _end ,uint152 amt) = staker.cooldowns(user1);
-        
+
+        (uint104 _end, uint152 amt) = staker.cooldowns(user1);
+
         assertGt(amt, 0, "Amount should be greater than 0");
         assertGt(block.timestamp, _end, "Cooldown should be over");
         uint unstakableAmount = staker.getUnstakableAmount(user1);
         uint unstakedAmount = staker.unstake(user1, user1);
-        assertEq(unstakedAmount, unstakableAmount, "Unstaked amount should be equal to unstakable amount");
+        assertEq(
+            unstakedAmount,
+            unstakableAmount,
+            "Unstaked amount should be equal to unstakable amount"
+        );
         vm.stopPrank();
 
-        assertEq(staker.balanceOf(user1), 0, "Balance after unstake should be zero");
-        assertEq(stakingToken.balanceOf(user1), amountToStake, "Token should be returned to user");
+        assertEq(
+            staker.balanceOf(user1),
+            0,
+            "Balance after unstake should be zero"
+        );
+        assertEq(
+            stakingToken.balanceOf(user1),
+            amountToStake,
+            "Token should be returned to user"
+        );
     }
 
     function test_MultipleStake() public {
         uint amountToStake = (stakingToken.balanceOf(user1) - 1) / 2;
         stakeSome(amountToStake);
         checkExpectedBalanceAndWeight(
-            amountToStake,  // balanceOf
-            0,              // expectedWeight
-            amountToStake,  // expectedTotalSupply
-            0               // expectedTotalWeight
+            amountToStake, // balanceOf
+            0, // expectedWeight
+            amountToStake, // expectedTotalSupply
+            0 // expectedTotalWeight
         );
 
         // Advance to next epoch, allowing weight to have grown.
         vm.warp(block.timestamp + warmupWait());
         checkExpectedBalanceAndWeight(
-            amountToStake,  // balanceOf
-            amountToStake,      // expectedWeight
-            amountToStake ,  // expectedTotalSupply
-            amountToStake       // expectedTotalWeight
+            amountToStake, // balanceOf
+            amountToStake, // expectedWeight
+            amountToStake, // expectedTotalSupply
+            amountToStake // expectedTotalWeight
         );
 
         stakeSome(amountToStake);
         checkExpectedBalanceAndWeight(
-            amountToStake * 2,  // balanceOf
-            amountToStake,      // expectedWeight
-            amountToStake * 2,  // expectedTotalSupply
-            amountToStake       // expectedTotalWeight
+            amountToStake * 2, // balanceOf
+            amountToStake, // expectedWeight
+            amountToStake * 2, // expectedTotalSupply
+            amountToStake // expectedTotalWeight
         );
 
         vm.warp(block.timestamp + warmupWait());
         checkExpectedBalanceAndWeight(
-            amountToStake * 2,  // balanceOf
-            amountToStake * 2,  // expectedWeight
-            amountToStake * 2,  // expectedTotalSupply
-            amountToStake * 2   // expectedTotalWeight
+            amountToStake * 2, // balanceOf
+            amountToStake * 2, // expectedWeight
+            amountToStake * 2, // expectedTotalSupply
+            amountToStake * 2 // expectedTotalWeight
         );
     }
 
@@ -192,19 +240,42 @@ contract GovStakerStakingTest is Setup {
     }
 
     function checkExpectedBalanceAndWeight(
-        uint expectedBalance, 
-        uint expectedWeight, 
-        uint expectedTotalSupply, 
+        uint expectedBalance,
+        uint expectedWeight,
+        uint expectedTotalSupply,
         uint expectedTotalWeight
     ) internal {
-        assertEq(staker.balanceOf(user1), expectedBalance, "Stake balance doesnt match");
-        assertEq(staker.totalSupply(), expectedTotalSupply, "Total supply doesnt match");
-        assertEq(staker.getAccountWeight(user1), expectedWeight, "Weight doesnt match");
-        assertEq(staker.getAccountWeightAt(user1, getEpoch()), expectedWeight, "getAccountWeightAt doesnt match");
-        assertEq(staker.getTotalWeight(), expectedTotalWeight, "getTotalWeight doesnt match");
-        assertEq(staker.getTotalWeightAt(getEpoch()), expectedTotalWeight, "getTotalWeightAt doesnt match");
+        assertEq(
+            staker.balanceOf(user1),
+            expectedBalance,
+            "Stake balance doesnt match"
+        );
+        assertEq(
+            staker.totalSupply(),
+            expectedTotalSupply,
+            "Total supply doesnt match"
+        );
+        assertEq(
+            staker.getAccountWeight(user1),
+            expectedWeight,
+            "Weight doesnt match"
+        );
+        assertEq(
+            staker.getAccountWeightAt(user1, getEpoch()),
+            expectedWeight,
+            "getAccountWeightAt doesnt match"
+        );
+        assertEq(
+            staker.getTotalWeight(),
+            expectedTotalWeight,
+            "getTotalWeight doesnt match"
+        );
+        assertEq(
+            staker.getTotalWeightAt(getEpoch()),
+            expectedTotalWeight,
+            "getTotalWeightAt doesnt match"
+        );
     }
-
 
     function stakeSomeAndWait(address user, uint amountToStake) internal {
         vm.prank(user);
@@ -217,7 +288,7 @@ contract GovStakerStakingTest is Setup {
 
     function stakeSome(uint amountToStake) internal {
         vm.prank(user1);
-        staker.stake(user1,amountToStake);
+        staker.stake(user1, amountToStake);
     }
 
     function test_Unstake() public {
@@ -231,7 +302,11 @@ contract GovStakerStakingTest is Setup {
         uint cooldownEpochs = staker.cooldownEpochs();
         vm.warp(block.timestamp + (cooldownEpochs + 1) * epochLength);
         uint amount = staker.unstake(user1, user1);
-        assertEq(amount, amountToStake, "Unstake amount should be equal to staked amount");
+        assertEq(
+            amount,
+            amountToStake,
+            "Unstake amount should be equal to staked amount"
+        );
         vm.stopPrank();
     }
 
@@ -245,7 +320,11 @@ contract GovStakerStakingTest is Setup {
         staker.cooldown(user1, amountToStake / 2);
         vm.warp(getUserCooldownEnd(user1));
         uint amount = staker.unstake(user1, user1);
-        assertEq(amount, amountToStake / 2, "Unstake amount should be equal to staked amount");
+        assertEq(
+            amount,
+            amountToStake / 2,
+            "Unstake amount should be equal to staked amount"
+        );
         vm.stopPrank();
     }
 
@@ -256,34 +335,60 @@ contract GovStakerStakingTest is Setup {
 
         staker.setCooldownEpochs(0);
         assertEq(staker.cooldownEpochs(), 0, "Cooldown duration should be 0");
-        assertEq(staker.isCooldownEnabled(), false, "Cooldown should be disabled");
+        assertEq(
+            staker.isCooldownEnabled(),
+            false,
+            "Cooldown should be disabled"
+        );
 
         vm.expectRevert(GovStaker.InvalidDuration.selector);
         staker.setCooldownEpochs(500);
 
         staker.setCooldownEpochs(2);
         assertEq(staker.cooldownEpochs(), 2, "Cooldown duration should be 5");
-        assertEq(staker.isCooldownEnabled(), true, "Cooldown should be enabled");
+        assertEq(
+            staker.isCooldownEnabled(),
+            true,
+            "Cooldown should be enabled"
+        );
         vm.stopPrank();
     }
 
     function test_SetPermaStaker() public {
         staker.stake(address(this), 100 * 10 ** 18);
-        assertEq(staker.balanceOf(address(this)), 100 * 10 ** 18, "Balance should be 100");
+        assertEq(
+            staker.balanceOf(address(this)),
+            100 * 10 ** 18,
+            "Balance should be 100"
+        );
         // make perma staker
-        assertEq(staker.isPermaStaker(address(this)), false, "Account should not be a perma staker");
+        assertEq(
+            staker.isPermaStaker(address(this)),
+            false,
+            "Account should not be a perma staker"
+        );
         staker.irreversiblyCommitAccountAsPermanentStaker(address(this));
-        assertEq(staker.isPermaStaker(address(this)), true, "Account should be a perma staker");
+        assertEq(
+            staker.isPermaStaker(address(this)),
+            true,
+            "Account should be a perma staker"
+        );
 
         vm.expectRevert("perma staker account");
         staker.cooldown(address(this), 100 * 10 ** 18);
 
         uint unstakableAmount = staker.getUnstakableAmount(address(this));
         uint unstakedAmount = staker.unstake(address(this), address(this));
-        assertEq(unstakedAmount, unstakableAmount, "Unstaked amount should be equal to unstakable amount");
+        assertEq(
+            unstakedAmount,
+            unstakableAmount,
+            "Unstaked amount should be equal to unstakable amount"
+        );
     }
 
-    function test_ShouldBeAbleToRecoverTokensWhenPermaStakingDuringPreexistingCooldown() public {
+    function test_ShouldBeAbleToRecoverTokensWhenPermaStakingDuringPreexistingCooldown()
+        public
+    {
         uint amount = 100 * 10 ** 18;
         staker.stake(address(this), amount);
         skip(warmupWait());
@@ -291,9 +396,17 @@ contract GovStakerStakingTest is Setup {
         staker.irreversiblyCommitAccountAsPermanentStaker(address(this));
         skip(cooldownWait());
         uint unstakableAmount = staker.getUnstakableAmount(address(this));
-        assertEq(unstakableAmount, amount, "Unstakable amount should be equal to staked amount");
+        assertEq(
+            unstakableAmount,
+            amount,
+            "Unstakable amount should be equal to staked amount"
+        );
         uint unstakedAmount = staker.unstake(address(this), address(this));
-        assertEq(unstakedAmount, amount, "Unstaked amount should be equal to unstakable amount");
+        assertEq(
+            unstakedAmount,
+            amount,
+            "Unstaked amount should be equal to unstakable amount"
+        );
         assertEq(staker.balanceOf(address(this)), 0, "Balance should be 0");
     }
 
@@ -310,12 +423,14 @@ contract GovStakerStakingTest is Setup {
     }
 
     function getUserCooldownEnd(address _account) public view returns (uint) {
-        (uint104 _end ,) = staker.cooldowns(_account);
+        (uint104 _end, ) = staker.cooldowns(_account);
         return uint(_end);
     }
 
-    function getUserCooldownAmount(address _account) public view returns (uint) {
-        (,uint152 amt) = staker.cooldowns(_account);
+    function getUserCooldownAmount(
+        address _account
+    ) public view returns (uint) {
+        (, uint152 amt) = staker.cooldowns(_account);
         return uint(amt);
     }
 }

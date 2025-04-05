@@ -102,30 +102,31 @@ abstract contract SafeHelper is Script, Test {
     // New struct to track a batch and its gas
     struct BatchData {
         bytes[] encodedTxns; // Array to store encoded transactions
-        uint256 totalGas;    // Total gas used by the batch
+        uint256 totalGas; // Total gas used by the batch
     }
 
     // Replace single array with array of batches
     BatchData[] public batches;
-    
+
     // Current batch index
     uint256 private currentBatchIndex;
-    
+
     // Maximum gas per batch
     uint256 public maxGasPerBatch = 12_000_000;
 
     constructor() {
         // Initialize first batch
-        batches.push(BatchData({
-            encodedTxns: new bytes[](0),
-            totalGas: 0
-        }));
+        batches.push(BatchData({encodedTxns: new bytes[](0), totalGas: 0}));
     }
 
     modifier isBatch(address safe_) {
         // Set the Safe API base URL and multisend address based on chain
         chainId = block.chainid;
-        SAFE_API_BASE_URL = string.concat("https://safe-client.safe.global/v1/chains/", vm.toString(chainId), "/");
+        SAFE_API_BASE_URL = string.concat(
+            "https://safe-client.safe.global/v1/chains/",
+            vm.toString(chainId),
+            "/"
+        );
         SAFE_MULTISEND_ADDRESS = 0x40A2aCCbd92BCA938b02010E17A5b8929b49130D;
         safe = safe_;
 
@@ -158,7 +159,9 @@ abstract contract SafeHelper is Script, Test {
 
         // Simulate transaction to get gas used
         uint256 gasStart = gasleft();
-        (bool success, bytes memory returnData) = to_.call{value: value_}(data_);
+        (bool success, bytes memory returnData) = to_.call{value: value_}(
+            data_
+        );
         uint256 gasUsed = gasStart - gasleft();
         if (deployMode == DeployMode.FORK) vm.stopBroadcast();
 
@@ -166,14 +169,17 @@ abstract contract SafeHelper is Script, Test {
         // Check if adding this transaction would exceed our max gas limit. If so create a new batch.
         if (gasInCurrentBatch + gasUsed > maxGasPerBatch) {
             currentBatchIndex++;
-            batches.push(BatchData({
-                encodedTxns: new bytes[](0),
-                totalGas: 0
-            }));
+            batches.push(BatchData({encodedTxns: new bytes[](0), totalGas: 0}));
         }
 
         // Encode the transaction and add it to the current batch
-        bytes memory encodedTxn = abi.encodePacked(Operation.CALL, to_, value_, data_.length, data_);
+        bytes memory encodedTxn = abi.encodePacked(
+            Operation.CALL,
+            to_,
+            value_,
+            data_.length,
+            data_
+        );
         batches[currentBatchIndex].encodedTxns.push(encodedTxn);
         batches[currentBatchIndex].totalGas += gasUsed;
 
@@ -210,7 +216,10 @@ abstract contract SafeHelper is Script, Test {
     }
 
     // Creates a batch from the transactions at the specified index
-    function _createBatchFromIndex(uint256 batchIndex, uint256 nonce_) private view returns (Batch memory batch) {
+    function _createBatchFromIndex(
+        uint256 batchIndex,
+        uint256 nonce_
+    ) private view returns (Batch memory batch) {
         batch.to = SAFE_MULTISEND_ADDRESS;
         batch.value = 0;
         batch.operation = Operation.DELEGATECALL;
@@ -228,7 +237,9 @@ abstract contract SafeHelper is Script, Test {
     }
 
     // Returns information about a specific batch
-    function getBatchInfo(uint256 batchIndex) public view returns (uint256 txCount, uint256 gasUsed) {
+    function getBatchInfo(
+        uint256 batchIndex
+    ) public view returns (uint256 txCount, uint256 gasUsed) {
         require(batchIndex <= currentBatchIndex, "Invalid batch index");
         return (
             batches[batchIndex].encodedTxns.length,
@@ -291,13 +302,17 @@ abstract contract SafeHelper is Script, Test {
     function _getSignerAddress() private returns (address signer) {
         if (walletType == LOCAL) {
             signer = vm.addr(uint256(privateKey));
-        } else { // LEDGER
+        } else {
+            // LEDGER
             // For Ledger, we'll need the address from the derivation path
             string[] memory inputs = new string[](4);
             inputs[0] = "cast";
             inputs[1] = "wallet";
             inputs[2] = "address";
-            inputs[3] = string.concat("--ledger --mnemonic-index ", vm.toString(mnemonicIndex));
+            inputs[3] = string.concat(
+                "--ledger --mnemonic-index ",
+                vm.toString(mnemonicIndex)
+            );
             bytes memory addr = vm.ffi(inputs);
             signer = address(bytes20(addr));
         }
@@ -320,14 +335,17 @@ abstract contract SafeHelper is Script, Test {
         string memory txnHash = vm.toString(batch_.txHash);
         string memory sig = bytesToHexString(batch_.signature);
         placeholder.serialize("contractTransactionHash", txnHash);
-        console2.log('txnHash',txnHash);
-        console2.log('signer',_getSignerAddress());
-        console2.log('signature',sig);
+        console2.log("txnHash", txnHash);
+        console2.log("signer", _getSignerAddress());
+        console2.log("signature", sig);
         placeholder.serialize("safeTxHash", txnHash);
         placeholder.serialize("refundReceiver", address(0));
         placeholder.serialize("nonce", vm.toString(batch_.nonce));
         placeholder.serialize("signature", sig);
-        string memory payload = placeholder.serialize("sender", vm.toString(_getSignerAddress()));
+        string memory payload = placeholder.serialize(
+            "sender",
+            vm.toString(_getSignerAddress())
+        );
 
         // Send batch
         (uint256 status, bytes memory data) = endpoint.post(
@@ -487,15 +505,22 @@ abstract contract SafeHelper is Script, Test {
     }
 
     function _getNonce(address safe_) private returns (uint256) {
-        string memory endpoint = string.concat(
-            _getSafeNonceAPIEndpoint(safe_)
-        );
+        string memory endpoint = string.concat(_getSafeNonceAPIEndpoint(safe_));
         (uint256 status, bytes memory data) = endpoint.get();
         if (status == 200) {
             string memory resp = string(data);
             return resp.readUint(".recommendedNonce");
         } else {
-            revert(string(abi.encodePacked("Error fetching nonce: ", vm.toString(status), ", ", string(data))));
+            revert(
+                string(
+                    abi.encodePacked(
+                        "Error fetching nonce: ",
+                        vm.toString(status),
+                        ", ",
+                        string(data)
+                    )
+                )
+            );
         }
     }
 
@@ -505,9 +530,9 @@ abstract contract SafeHelper is Script, Test {
         return
             string.concat(
                 SAFE_API_BASE_URL,
-                'transactions/',
+                "transactions/",
                 vm.toString(safe_),
-                '/propose'
+                "/propose"
             );
     }
 
@@ -517,9 +542,9 @@ abstract contract SafeHelper is Script, Test {
         return
             string.concat(
                 SAFE_API_BASE_URL,
-                'safes/',
+                "safes/",
                 vm.toString(safe_),
-                '/nonces'
+                "/nonces"
             );
     }
 
@@ -530,7 +555,9 @@ abstract contract SafeHelper is Script, Test {
     }
 
     // Signatures need to be converted to hex strings with 0x prefix
-    function bytesToHexString(bytes memory data) internal pure returns (string memory) {
+    function bytesToHexString(
+        bytes memory data
+    ) internal pure returns (string memory) {
         bytes memory hexChars = "0123456789abcdef";
         bytes memory hexString = new bytes(data.length * 2);
 

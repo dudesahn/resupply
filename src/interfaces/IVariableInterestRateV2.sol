@@ -26,9 +26,15 @@ interface IVariableInterestRateV2 {
         uint256 _deltaTime,
         uint256 _utilization,
         uint64 _oldFullUtilizationInterest
-    ) external view returns (uint64 _newRatePerSec, uint64 _newFullUtilizationInterest);
+    )
+        external
+        view
+        returns (uint64 _newRatePerSec, uint64 _newFullUtilizationInterest);
 
     function name() external pure returns (string memory);
 
-    function version() external pure returns (uint256 _major, uint256 _minor, uint256 _patch);
+    function version()
+        external
+        pure
+        returns (uint256 _major, uint256 _minor, uint256 _patch);
 }

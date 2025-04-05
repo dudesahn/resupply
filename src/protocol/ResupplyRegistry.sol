@@ -6,15 +6,15 @@ pragma solidity 0.8.28;
  * @notice Based on code from Drake Evans and Frax Finance's registry contract (https://github.com/FraxFinance/fraxlend), adapted for Resupply Finance
  */
 
-import { CoreOwnable } from '../dependencies/CoreOwnable.sol';
-import { IResupplyPair } from "../interfaces/IResupplyPair.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "../libraries/SafeERC20.sol";
-import { IMintable } from "../interfaces/IMintable.sol";
-import { IRewardHandler } from "../interfaces/IRewardHandler.sol";
+import {CoreOwnable} from "../dependencies/CoreOwnable.sol";
+import {IResupplyPair} from "../interfaces/IResupplyPair.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "../libraries/SafeERC20.sol";
+import {IMintable} from "../interfaces/IMintable.sol";
+import {IRewardHandler} from "../interfaces/IRewardHandler.sol";
 
-contract ResupplyRegistry is CoreOwnable{
+contract ResupplyRegistry is CoreOwnable {
     using SafeERC20 for IERC20;
 
     // Protected keys
@@ -50,7 +50,11 @@ contract ResupplyRegistry is CoreOwnable{
     mapping(string => bool) public keyExists; // to prevent duplicate keys
     mapping(bytes32 => string) public hashToKey;
 
-    constructor(address _core, address _token, address _govToken) CoreOwnable(_core){
+    constructor(
+        address _core,
+        address _token,
+        address _govToken
+    ) CoreOwnable(_core) {
         token = _token;
         govToken = _govToken;
     }
@@ -72,7 +76,11 @@ contract ResupplyRegistry is CoreOwnable{
 
     /// @notice The ```getAllPairAddresses``` function returns an array of all deployed pairs
     /// @return _registeredPairs The array of pairs deployed
-    function getAllPairAddresses() external view returns (address[] memory _registeredPairs) {
+    function getAllPairAddresses()
+        external
+        view
+        returns (address[] memory _registeredPairs)
+    {
         _registeredPairs = registeredPairs;
     }
 
@@ -80,54 +88,70 @@ contract ResupplyRegistry is CoreOwnable{
     // Functions: Core Asset Registry
     // ============================================================================================
 
-    function setL2Manager(address _newAddress) external onlyOwner{
+    function setL2Manager(address _newAddress) external onlyOwner {
         l2manager = _newAddress;
         _setAddress(_newAddress, L2_MANAGER, keccak256(bytes(L2_MANAGER)));
     }
 
-    function setLiquidationHandler(address _newAddress) external onlyOwner{
+    function setLiquidationHandler(address _newAddress) external onlyOwner {
         liquidationHandler = _newAddress;
-        _setAddress(_newAddress, LIQUIDATION_HANDLER, keccak256(bytes(LIQUIDATION_HANDLER)));
+        _setAddress(
+            _newAddress,
+            LIQUIDATION_HANDLER,
+            keccak256(bytes(LIQUIDATION_HANDLER))
+        );
     }
 
-    function setFeeDeposit(address _newAddress) external onlyOwner{
+    function setFeeDeposit(address _newAddress) external onlyOwner {
         feeDeposit = _newAddress;
         _setAddress(_newAddress, FEE_DEPOSIT, keccak256(bytes(FEE_DEPOSIT)));
     }
 
-    function setRedemptionHandler(address _newAddress) external onlyOwner{
+    function setRedemptionHandler(address _newAddress) external onlyOwner {
         redemptionHandler = _newAddress;
-        _setAddress(_newAddress, REDEMPTION_HANDLER, keccak256(bytes(REDEMPTION_HANDLER)));
+        _setAddress(
+            _newAddress,
+            REDEMPTION_HANDLER,
+            keccak256(bytes(REDEMPTION_HANDLER))
+        );
     }
 
-    function setInsurancePool(address _newAddress) external onlyOwner{
+    function setInsurancePool(address _newAddress) external onlyOwner {
         insurancePool = _newAddress;
-        _setAddress(_newAddress, INSURANCE_POOL, keccak256(bytes(INSURANCE_POOL)));
+        _setAddress(
+            _newAddress,
+            INSURANCE_POOL,
+            keccak256(bytes(INSURANCE_POOL))
+        );
     }
 
-    function setRewardHandler(address _newAddress) external onlyOwner{
+    function setRewardHandler(address _newAddress) external onlyOwner {
         rewardHandler = _newAddress;
-        _setAddress(_newAddress, REWARD_HANDLER, keccak256(bytes(REWARD_HANDLER)));
+        _setAddress(
+            _newAddress,
+            REWARD_HANDLER,
+            keccak256(bytes(REWARD_HANDLER))
+        );
     }
 
-    function setStaker(address _newAddress) external onlyOwner{
+    function setStaker(address _newAddress) external onlyOwner {
         staker = _newAddress;
         _setAddress(_newAddress, STAKER, keccak256(bytes(STAKER)));
     }
 
-    function setTreasury(address _newAddress) external onlyOwner{
+    function setTreasury(address _newAddress) external onlyOwner {
         treasury = _newAddress;
         _setAddress(_newAddress, TREASURY, keccak256(bytes(TREASURY)));
     }
 
-    function setVestManager(address _newAddress) external onlyOwner{
+    function setVestManager(address _newAddress) external onlyOwner {
         vestManager = _newAddress;
         _setAddress(_newAddress, VEST_MANAGER, keccak256(bytes(VEST_MANAGER)));
     }
 
     /// @notice The ```addPair``` function adds a pair to the registry and ensures a unique name
     /// @param _pairAddress The address of the pair
-    function addPair(address _pairAddress) external onlyOwner{
+    function addPair(address _pairAddress) external onlyOwner {
         // Add pair to the global list
         registeredPairs.push(_pairAddress);
 
@@ -148,7 +172,7 @@ contract ResupplyRegistry is CoreOwnable{
 
     /// @notice The ```setDefaultSwappers``` function is used to set default list of approved swappers
     /// @param _swappers The list of swappers to set as default allowed
-    function setDefaultSwappers(address[] memory _swappers) external onlyOwner{
+    function setDefaultSwappers(address[] memory _swappers) external onlyOwner {
         defaultSwappers = _swappers;
         emit DefaultSwappersSet(_swappers);
     }
@@ -156,7 +180,6 @@ contract ResupplyRegistry is CoreOwnable{
     // ============================================================================================
     // Functions: Key Value Asset Registry
     // ============================================================================================
-
 
     /// @notice Generic address setter for the registry
     /// @dev Cannot use for protected keys, since they are already assigned to specific variables
@@ -174,7 +197,11 @@ contract ResupplyRegistry is CoreOwnable{
         _setAddress(addr, key, keyHash);
     }
 
-    function _setAddress(address addr, string memory key, bytes32 keyHash) internal {
+    function _setAddress(
+        address addr,
+        string memory key,
+        bytes32 keyHash
+    ) internal {
         require(bytes(key).length > 0, "Key cannot be empty");
         require(addr != address(0), "Address cannot be zero");
         if (!keyExists[key]) {
@@ -221,13 +248,20 @@ contract ResupplyRegistry is CoreOwnable{
     // Functions: Operations
     // ============================================================================================
 
-    function withdrawTo(address _asset, uint256 _amount, address _to) external onlyOwner {
+    function withdrawTo(
+        address _asset,
+        uint256 _amount,
+        address _to
+    ) external onlyOwner {
         IERC20(_asset).safeTransfer(_to, _amount);
         emit WithdrawTo(_to, _amount);
     }
 
     function mint(address _receiver, uint256 _amount) external {
-        require(pairsByName[IERC20Metadata(msg.sender).name()] == msg.sender, "!regPair");
+        require(
+            pairsByName[IERC20Metadata(msg.sender).name()] == msg.sender,
+            "!regPair"
+        );
         IMintable(token).mint(_receiver, _amount);
     }
 

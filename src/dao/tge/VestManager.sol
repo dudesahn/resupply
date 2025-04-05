@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import { VestManagerBase } from "./VestManagerBase.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import {VestManagerBase} from "./VestManagerBase.sol";
 
 interface IGovToken is IERC20 {
     function INITIAL_SUPPLY() external view returns (uint256);
@@ -11,18 +11,19 @@ interface IGovToken is IERC20 {
 
 contract VestManager is VestManagerBase {
     uint256 constant PRECISION = 1e18;
-    address immutable public prisma;
-    address immutable public yprisma;
-    address immutable public cvxprisma;
+    address public immutable prisma;
+    address public immutable yprisma;
+    address public immutable cvxprisma;
     uint256 public immutable INITIAL_SUPPLY;
     address public immutable BURN_ADDRESS;
-    
+
     bool public initialized;
     uint256 public redemptionRatio;
     mapping(AllocationType => uint256) public allocationByType;
     mapping(AllocationType => uint256) public durationByType;
     mapping(AllocationType => bytes32) public merkleRootByType;
-    mapping(address account => mapping(AllocationType => bool hasClaimed)) public hasClaimed; // used for airdrops only
+    mapping(address account => mapping(AllocationType => bool hasClaimed))
+        public hasClaimed; // used for airdrops only
 
     enum AllocationType {
         PERMA_STAKE,
@@ -34,9 +35,19 @@ contract VestManager is VestManagerBase {
         AIRDROP_LOCK_PENALTY
     }
 
-    event TokenRedeemed(address indexed token, address indexed redeemer, address indexed recipient, uint256 amount);
+    event TokenRedeemed(
+        address indexed token,
+        address indexed redeemer,
+        address indexed recipient,
+        uint256 amount
+    );
     event MerkleRootSet(AllocationType indexed allocationType, bytes32 root);
-    event AirdropClaimed(AllocationType indexed allocationType, address indexed account, address indexed recipient, uint256 amount);
+    event AirdropClaimed(
+        AllocationType indexed allocationType,
+        address indexed account,
+        address indexed recipient,
+        uint256 amount
+    );
     event InitializationParamsSet();
 
     constructor(
@@ -46,7 +57,10 @@ contract VestManager is VestManagerBase {
         address[3] memory _redemptionTokens // PRISMA, yPRISMA, cvxPRISMA
     ) VestManagerBase(_core, _token) {
         INITIAL_SUPPLY = IGovToken(_token).INITIAL_SUPPLY();
-        require(IERC20(_token).balanceOf(address(this)) == INITIAL_SUPPLY, "VestManager not funded");
+        require(
+            IERC20(_token).balanceOf(address(this)) == INITIAL_SUPPLY,
+            "VestManager not funded"
+        );
         BURN_ADDRESS = _burnAddress;
         prisma = _redemptionTokens[0];
         yprisma = _redemptionTokens[1];
@@ -76,19 +90,28 @@ contract VestManager is VestManagerBase {
 
         uint256 totalPctAllocated;
         uint256 airdropIndex;
-        require(_vestDurations[0] == _vestDurations[1], "perma-staker durations must match");
+        require(
+            _vestDurations[0] == _vestDurations[1],
+            "perma-staker durations must match"
+        );
         for (uint256 i = 0; i < _allocPercentages.length; i++) {
-            AllocationType allocType = i == 0 ? AllocationType(i) : AllocationType(i-1); // First two are same type
-            require(_vestDurations[i] > 0 && _vestDurations[i] <= type(uint32).max, "invalid duration");
+            AllocationType allocType = i == 0
+                ? AllocationType(i)
+                : AllocationType(i - 1); // First two are same type
+            require(
+                _vestDurations[i] > 0 && _vestDurations[i] <= type(uint32).max,
+                "invalid duration"
+            );
             durationByType[allocType] = uint32(_vestDurations[i]);
             totalPctAllocated += _allocPercentages[i];
-            uint256 allocation = _allocPercentages[i] * INITIAL_SUPPLY / PRECISION;
+            uint256 allocation = (_allocPercentages[i] * INITIAL_SUPPLY) /
+                PRECISION;
             allocationByType[allocType] += allocation;
-            
-            if (i < _nonUserTargets.length) { 
+
+            if (i < _nonUserTargets.length) {
                 _createVest(
-                    _nonUserTargets[i], 
-                    uint32(_vestDurations[i]), 
+                    _nonUserTargets[i],
+                    uint32(_vestDurations[i]),
                     uint112(allocation)
                 );
                 continue;
@@ -105,9 +128,9 @@ contract VestManager is VestManagerBase {
         }
 
         // Set the redemption ratio to be used for all PRISMA/yPRISMA/cvxPRISMA redemptions
-        uint256 _redemptionRatio = (
-            allocationByType[AllocationType.REDEMPTIONS] * 1e18 / _maxRedeemable
-        );
+        uint256 _redemptionRatio = ((allocationByType[
+            AllocationType.REDEMPTIONS
+        ] * 1e18) / _maxRedeemable);
         redemptionRatio = _redemptionRatio;
         require(_redemptionRatio != 0, "ratio is 0");
         require(totalPctAllocated == PRECISION, "Total not 100%");
@@ -120,9 +143,15 @@ contract VestManager is VestManagerBase {
         @param _root Merkle root for the lock penalty airdrop
         @param _allocation Allocation for the lock penalty airdrop
     */
-    function setLockPenaltyMerkleRoot(bytes32 _root, uint256 _allocation) external onlyOwner {
+    function setLockPenaltyMerkleRoot(
+        bytes32 _root,
+        uint256 _allocation
+    ) external onlyOwner {
         require(initialized, "init params not set");
-        require(merkleRootByType[AllocationType.AIRDROP_LOCK_PENALTY] == bytes32(0), "root already set");
+        require(
+            merkleRootByType[AllocationType.AIRDROP_LOCK_PENALTY] == bytes32(0),
+            "root already set"
+        );
         merkleRootByType[AllocationType.AIRDROP_LOCK_PENALTY] = _root;
         emit MerkleRootSet(AllocationType.AIRDROP_LOCK_PENALTY, _root);
         allocationByType[AllocationType.AIRDROP_LOCK_PENALTY] = _allocation;
@@ -137,9 +166,9 @@ contract VestManager is VestManagerBase {
         uint256 _index
     ) external callerOrDelegated(_account) {
         require(
-            _type == AllocationType.AIRDROP_TEAM || 
-            _type == AllocationType.AIRDROP_LOCK_PENALTY || 
-            _type == AllocationType.AIRDROP_VICTIMS, 
+            _type == AllocationType.AIRDROP_TEAM ||
+                _type == AllocationType.AIRDROP_LOCK_PENALTY ||
+                _type == AllocationType.AIRDROP_VICTIMS,
             "invalid type"
         );
 
@@ -148,11 +177,10 @@ contract VestManager is VestManagerBase {
 
         require(!hasClaimed[_account][_type], "already claimed");
         bytes32 node = keccak256(abi.encodePacked(_account, _index, _amount));
-        require(MerkleProof.verifyCalldata(
-            _proof, 
-            _root, 
-            node
-        ), "invalid proof");
+        require(
+            MerkleProof.verifyCalldata(_proof, _root, node),
+            "invalid proof"
+        );
 
         _createVest(
             _recipient,
@@ -171,11 +199,15 @@ contract VestManager is VestManagerBase {
         @dev This function allows users to convert their PRISMA tokens to RSUP tokens
              at the redemption ratio. The input tokens are burned in the process.
     */
-    function redeem(address _token, address _recipient, uint256 _amount) external {
+    function redeem(
+        address _token,
+        address _recipient,
+        uint256 _amount
+    ) external {
         require(
-            _token == address(prisma) || 
-            _token == address(yprisma) || 
-            _token == address(cvxprisma), 
+            _token == address(prisma) ||
+                _token == address(yprisma) ||
+                _token == address(cvxprisma),
             "invalid token"
         );
         require(_amount > 0, "amount too low");
@@ -185,7 +217,7 @@ contract VestManager is VestManagerBase {
         _createVest(
             _recipient,
             uint32(durationByType[AllocationType.REDEMPTIONS]),
-            uint112(_amount * _ratio / 1e18)
+            uint112((_amount * _ratio) / 1e18)
         );
         emit TokenRedeemed(_token, msg.sender, _recipient, _amount);
     }

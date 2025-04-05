@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
-import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 interface IUniswapV3SingleTwapOracle is IERC165 {
     event SetTwapDuration(uint256 oldTwapDuration, uint256 newTwapDuration);

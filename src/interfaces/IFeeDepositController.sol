@@ -42,5 +42,9 @@ interface IFeeDepositController {
     /// @param _insuranceSplit The percentage (in BPS) to send to insurance pool
     /// @param _treasurySplit The percentage (in BPS) to send to treasury
     /// @param _platformSplit The percentage (in BPS) to send to platform stakers
-    function setSplits(uint256 _insuranceSplit, uint256 _treasurySplit, uint256 _platformSplit) external;
+    function setSplits(
+        uint256 _insuranceSplit,
+        uint256 _treasurySplit,
+        uint256 _platformSplit
+    ) external;
 }

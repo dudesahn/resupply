@@ -6,7 +6,6 @@ import {SafeHelper} from "script/utils/SafeHelper.sol";
 
 // All helper functions take care of setting the values in both local environment + fork environment.
 contract TenderlyHelper is SafeHelper {
-
     string public URL = vm.envString("TENDERLY_URL");
 
     function skipTime(uint256 _seconds) public {
@@ -22,18 +21,38 @@ contract TenderlyHelper is SafeHelper {
         }
     }
 
-    function setTokenBalance(address token, address user, uint256 amount) public {
+    function setTokenBalance(
+        address token,
+        address user,
+        uint256 amount
+    ) public {
         deal(token, user, amount);
-        sendCurlRequest("tenderly_setErc20Balance", vm.toString(token), vm.toString(user), toHexString(amount));
+        sendCurlRequest(
+            "tenderly_setErc20Balance",
+            vm.toString(token),
+            vm.toString(user),
+            toHexString(amount)
+        );
     }
 
     function setEthBalance(address user, uint256 amount) public {
         deal(user, amount);
-        sendCurlRequest("tenderly_setBalance", vm.toString(user), toHexString(amount));
+        sendCurlRequest(
+            "tenderly_setBalance",
+            vm.toString(user),
+            toHexString(amount)
+        );
     }
 
-    function getEthBalance(address user, uint256 blockNumber) public returns (uint256) {
-        string memory result = sendCurlRequest("eth_getBalance", vm.toString(user), vm.toString(blockNumber));
+    function getEthBalance(
+        address user,
+        uint256 blockNumber
+    ) public returns (uint256) {
+        string memory result = sendCurlRequest(
+            "eth_getBalance",
+            vm.toString(user),
+            vm.toString(blockNumber)
+        );
         return extractValueFromResult(result, '"result":"');
     }
 
@@ -45,35 +64,103 @@ contract TenderlyHelper is SafeHelper {
     }
 
     function syncTimestamp() public returns (uint256) {
-        string memory result = sendCurlRequest("eth_getBlockByNumber", "latest", false);
+        string memory result = sendCurlRequest(
+            "eth_getBlockByNumber",
+            "latest",
+            false
+        );
         uint256 timestamp = extractValueFromResult(result, '"timestamp":"');
         vm.warp(timestamp);
         return timestamp;
     }
 
-    function sendCurlRequest(string memory method, string memory param1, bool param2) internal returns (string memory) {
+    function sendCurlRequest(
+        string memory method,
+        string memory param1,
+        bool param2
+    ) internal returns (string memory) {
         string memory param2Str = param2 ? "true" : "false";
-        string memory data = string(abi.encodePacked('{"jsonrpc":"2.0","method":"', method, '","params":["', param1, '",', param2Str, '],"id":1}'));
+        string memory data = string(
+            abi.encodePacked(
+                '{"jsonrpc":"2.0","method":"',
+                method,
+                '","params":["',
+                param1,
+                '",',
+                param2Str,
+                '],"id":1}'
+            )
+        );
         return sendRequest(data);
     }
 
-    function sendCurlRequest(string memory method, string memory param1, string memory param2, string memory param3) internal returns (string memory) {
-        string memory data = string(abi.encodePacked('{"jsonrpc":"2.0","method":"', method, '","params":["', param1, '","', param2, '","', param3, '"],"id":1}'));
+    function sendCurlRequest(
+        string memory method,
+        string memory param1,
+        string memory param2,
+        string memory param3
+    ) internal returns (string memory) {
+        string memory data = string(
+            abi.encodePacked(
+                '{"jsonrpc":"2.0","method":"',
+                method,
+                '","params":["',
+                param1,
+                '","',
+                param2,
+                '","',
+                param3,
+                '"],"id":1}'
+            )
+        );
         return sendRequest(data);
     }
 
-    function sendCurlRequest(string memory method, string memory param1, string memory param2) internal returns (string memory) {
-        string memory data = string(abi.encodePacked('{"jsonrpc":"2.0","method":"', method, '","params":["', param1, '","', param2, '"],"id":1}'));
+    function sendCurlRequest(
+        string memory method,
+        string memory param1,
+        string memory param2
+    ) internal returns (string memory) {
+        string memory data = string(
+            abi.encodePacked(
+                '{"jsonrpc":"2.0","method":"',
+                method,
+                '","params":["',
+                param1,
+                '","',
+                param2,
+                '"],"id":1}'
+            )
+        );
         return sendRequest(data);
     }
 
-    function sendCurlRequest(string memory method, string memory param1) internal returns (string memory) {
-        string memory data = string(abi.encodePacked('{"jsonrpc":"2.0","method":"', method, '","params":["', param1, '"],"id":1}'));
+    function sendCurlRequest(
+        string memory method,
+        string memory param1
+    ) internal returns (string memory) {
+        string memory data = string(
+            abi.encodePacked(
+                '{"jsonrpc":"2.0","method":"',
+                method,
+                '","params":["',
+                param1,
+                '"],"id":1}'
+            )
+        );
         return sendRequest(data);
     }
 
-    function sendCurlRequest(string memory method) internal returns (string memory) {
-        string memory data = string(abi.encodePacked('{"jsonrpc":"2.0","method":"', method, '","params":[],"id":1}'));
+    function sendCurlRequest(
+        string memory method
+    ) internal returns (string memory) {
+        string memory data = string(
+            abi.encodePacked(
+                '{"jsonrpc":"2.0","method":"',
+                method,
+                '","params":[],"id":1}'
+            )
+        );
         return sendRequest(data);
     }
 
@@ -94,7 +181,10 @@ contract TenderlyHelper is SafeHelper {
         return result;
     }
 
-    function extractValueFromResult(string memory result, string memory key) internal pure returns (uint256) {
+    function extractValueFromResult(
+        string memory result,
+        string memory key
+    ) internal pure returns (uint256) {
         bytes memory resultBytes = bytes(result);
         bytes memory keyBytes = bytes(key);
         uint256 startIndex = findKeyIndex(resultBytes, keyBytes);
@@ -109,7 +199,10 @@ contract TenderlyHelper is SafeHelper {
         return hexStringToUint(string(valueBytes));
     }
 
-    function findKeyIndex(bytes memory resultBytes, bytes memory keyBytes) internal pure returns (uint256) {
+    function findKeyIndex(
+        bytes memory resultBytes,
+        bytes memory keyBytes
+    ) internal pure returns (uint256) {
         for (uint256 i = 0; i < resultBytes.length - keyBytes.length; i++) {
             bool isMatch = true;
             for (uint256 j = 0; j < keyBytes.length; j++) {
@@ -146,7 +239,9 @@ contract TenderlyHelper is SafeHelper {
         return string(buffer);
     }
 
-    function hexStringToUint(string memory hexString) internal pure returns (uint256) {
+    function hexStringToUint(
+        string memory hexString
+    ) internal pure returns (uint256) {
         bytes memory hexBytes = bytes(hexString);
         uint256 value = 0;
         for (uint256 i = 0; i < hexBytes.length; i++) {

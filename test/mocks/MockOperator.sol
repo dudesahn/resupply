@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { CoreOwnable } from "../../src/dependencies/CoreOwnable.sol";
+import {CoreOwnable} from "../../src/dependencies/CoreOwnable.sol";
 
 contract MockOperator is CoreOwnable {
     uint256 public value;
@@ -9,11 +9,20 @@ contract MockOperator is CoreOwnable {
 
     constructor(address _core) CoreOwnable(_core) {}
 
-    function preHook(address caller, address target, bytes calldata data) external returns (bool) {
+    function preHook(
+        address caller,
+        address target,
+        bytes calldata data
+    ) external returns (bool) {
         return value <= expectedValue;
     }
 
-    function postHook(bytes calldata result, address caller, address target, bytes calldata data) external returns (bool) {
+    function postHook(
+        bytes calldata result,
+        address caller,
+        address target,
+        bytes calldata data
+    ) external returns (bool) {
         return value == expectedValue;
     }
 

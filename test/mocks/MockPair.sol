@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { CoreOwnable } from "../../src/dependencies/CoreOwnable.sol";
+import {CoreOwnable} from "../../src/dependencies/CoreOwnable.sol";
 
 contract MockPair is CoreOwnable {
     uint256 public value;

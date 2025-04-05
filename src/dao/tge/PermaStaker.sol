@@ -2,24 +2,26 @@
 pragma solidity 0.8.28;
 
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
-import { IGovStaker } from "../../interfaces/IGovStaker.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IResupplyRegistry } from "../../interfaces/IResupplyRegistry.sol";
-import { IVestManager } from "../../interfaces/IVestManager.sol";
+import {IGovStaker} from "../../interfaces/IGovStaker.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IResupplyRegistry} from "../../interfaces/IResupplyRegistry.sol";
+import {IVestManager} from "../../interfaces/IVestManager.sol";
 
 contract PermaStaker is Ownable2Step {
-
     address public immutable core;
     IResupplyRegistry public immutable registry;
     IVestManager public immutable vestManager;
     string public name;
     address public operator;
     IGovStaker public staker;
-    
+
     event OperatorUpdated(address indexed operator);
-    
-    modifier onlyOwnerOrOperator {
-        require(msg.sender == owner() || msg.sender == operator, "!ownerOrOperator");
+
+    modifier onlyOwnerOrOperator() {
+        require(
+            msg.sender == owner() || msg.sender == operator,
+            "!ownerOrOperator"
+        );
         _;
     }
 
@@ -42,17 +44,26 @@ contract PermaStaker is Ownable2Step {
         IERC20(token).approve(address(_staker), type(uint256).max);
     }
 
-    function execute(address target, bytes calldata data) external returns (bool, bytes memory) {
+    function execute(
+        address target,
+        bytes calldata data
+    ) external returns (bool, bytes memory) {
         return _execute(target, data);
     }
 
-    function safeExecute(address target, bytes calldata data) external returns (bytes memory) {
+    function safeExecute(
+        address target,
+        bytes calldata data
+    ) external returns (bytes memory) {
         (bool success, bytes memory result) = _execute(target, data);
         require(success, "CallFailed");
         return result;
     }
 
-    function _execute(address target, bytes calldata data) internal onlyOwnerOrOperator returns (bool success, bytes memory result) {
+    function _execute(
+        address target,
+        bytes calldata data
+    ) internal onlyOwnerOrOperator returns (bool success, bytes memory result) {
         require(target != address(vestManager), "target not allowed");
         (success, result) = target.call(data);
     }
@@ -62,7 +73,11 @@ contract PermaStaker is Ownable2Step {
         emit OperatorUpdated(_operator);
     }
 
-    function claimAndStake() external onlyOwnerOrOperator() returns(uint256 amount) {
+    function claimAndStake()
+        external
+        onlyOwnerOrOperator
+        returns (uint256 amount)
+    {
         require(staker == _getStaker(), "Migration needed");
         amount = vestManager.claim(address(this));
         staker.stake(address(this), amount);
@@ -75,7 +90,7 @@ contract PermaStaker is Ownable2Step {
         _oldStaker.migrateStake();
         staker = _newStaker;
     }
-    
+
     function _getStaker() internal view returns (IGovStaker) {
         return IGovStaker(registry.staker());
     }

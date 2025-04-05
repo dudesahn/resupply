@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { IERC4626 } from "../../src/interfaces/IERC4626.sol";
+import {IERC4626} from "../../src/interfaces/IERC4626.sol";
 
 /// @title Mock Oracle Contract
 /// @notice A mock oracle contract for testing purposes that can return either a fixed price or actual ERC4626 vault share price
 /// @dev Implements basic oracle functionality with ability to override price for testing scenarios
 contract MockOracle {
-
     uint8 internal constant DECIMALS = 18;
     string public name;
     uint256 public price;

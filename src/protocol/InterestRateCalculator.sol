@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { IRateCalculator } from "../interfaces/IRateCalculator.sol";
-import { IERC4626 } from "../interfaces/IERC4626.sol";
-import { IStakedFrax } from "../interfaces/IStakedFrax.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IRateCalculator} from "../interfaces/IRateCalculator.sol";
+import {IERC4626} from "../interfaces/IERC4626.sol";
+import {IStakedFrax} from "../interfaces/IStakedFrax.sol";
 
 /// @title Calculate rates based on the underlying vaults with some floor settings
 contract InterestRateCalculator is IRateCalculator {
     using Strings for uint256;
 
-    address public constant sfrxusd = address(0xcf62F905562626CfcDD2261162a51fd02Fc9c5b6);
+    address public constant sfrxusd =
+        address(0xcf62F905562626CfcDD2261162a51fd02Fc9c5b6);
 
     /// @notice The name suffix for the interest rate calculator
     string public suffix;
@@ -44,23 +45,33 @@ contract InterestRateCalculator is IRateCalculator {
     /// @return _major Major version
     /// @return _minor Minor version
     /// @return _patch Patch version
-    function version() external pure returns (uint256 _major, uint256 _minor, uint256 _patch) {
+    function version()
+        external
+        pure
+        returns (uint256 _major, uint256 _minor, uint256 _patch)
+    {
         _major = 1;
         _minor = 0;
         _patch = 0;
     }
 
-    function sfrxusdRates() public view returns(uint256 fraxPerSecond){
+    function sfrxusdRates() public view returns (uint256 fraxPerSecond) {
         //on fraxtal need to get pricefeed, on mainnet check directly on sfrxusd
-        IStakedFrax.RewardsCycleData memory rdata = IStakedFrax(sfrxusd).rewardsCycleData();
+        IStakedFrax.RewardsCycleData memory rdata = IStakedFrax(sfrxusd)
+            .rewardsCycleData();
         uint256 sfrxusdtotal = IStakedFrax(sfrxusd).storedTotalAssets();
-        if(sfrxusdtotal == 0){
+        if (sfrxusdtotal == 0) {
             sfrxusdtotal = 1;
         }
-        uint256 maxsfrxusdDistro = IStakedFrax(sfrxusd).maxDistributionPerSecondPerAsset();
-        fraxPerSecond = rdata.rewardCycleAmount / (rdata.cycleEnd - rdata.lastSync);
-        fraxPerSecond = fraxPerSecond * 1e18 / sfrxusdtotal;
-        fraxPerSecond = fraxPerSecond > maxsfrxusdDistro ? maxsfrxusdDistro : fraxPerSecond;
+        uint256 maxsfrxusdDistro = IStakedFrax(sfrxusd)
+            .maxDistributionPerSecondPerAsset();
+        fraxPerSecond =
+            rdata.rewardCycleAmount /
+            (rdata.cycleEnd - rdata.lastSync);
+        fraxPerSecond = (fraxPerSecond * 1e18) / sfrxusdtotal;
+        fraxPerSecond = fraxPerSecond > maxsfrxusdDistro
+            ? maxsfrxusdDistro
+            : fraxPerSecond;
     }
 
     /// @notice The ```getNewRate``` function calculates interest rates using underlying rates and minimums
@@ -96,6 +107,8 @@ contract InterestRateCalculator is IRateCalculator {
 
         //if difference is over some minimum, return difference
         //if not, return minimum
-        _newRatePerSec = difference > floorRate ? uint64(difference) : uint64(floorRate);
+        _newRatePerSec = difference > floorRate
+            ? uint64(difference)
+            : uint64(floorRate);
     }
 }

@@ -1,15 +1,15 @@
-import { BaseAction } from "script/actions/dependencies/BaseAction.sol";
-import { Protocol } from "script/protocol/ProtocolConstants.sol";
-import { ICore } from "src/interfaces/ICore.sol";
-import { IVoter } from "src/interfaces/IVoter.sol";
-import { IResupplyRegistry } from "src/interfaces/IResupplyRegistry.sol";
-import { IInsurancePool } from "src/interfaces/IInsurancePool.sol";
-import { DeploymentConfig, CreateX } from "script/deploy/dependencies/DeploymentConfig.sol";
-import { TenderlyHelper } from "script/utils/TenderlyHelper.sol";
-import { CreateXHelper } from "script/utils/CreateXHelper.sol";
-import { ITreasury } from "src/interfaces/ITreasury.sol";
-import { console } from "forge-std/console.sol";
-import { IFeeDeposit } from "src/interfaces/IFeeDeposit.sol";
+import {BaseAction} from "script/actions/dependencies/BaseAction.sol";
+import {Protocol} from "script/protocol/ProtocolConstants.sol";
+import {ICore} from "src/interfaces/ICore.sol";
+import {IVoter} from "src/interfaces/IVoter.sol";
+import {IResupplyRegistry} from "src/interfaces/IResupplyRegistry.sol";
+import {IInsurancePool} from "src/interfaces/IInsurancePool.sol";
+import {DeploymentConfig, CreateX} from "script/deploy/dependencies/DeploymentConfig.sol";
+import {TenderlyHelper} from "script/utils/TenderlyHelper.sol";
+import {CreateXHelper} from "script/utils/CreateXHelper.sol";
+import {ITreasury} from "src/interfaces/ITreasury.sol";
+import {console} from "forge-std/console.sol";
+import {IFeeDeposit} from "src/interfaces/IFeeDeposit.sol";
 
 contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
     address public constant deployer = Protocol.DEPLOYER;
@@ -33,14 +33,21 @@ contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
         returnTokens();
 
         // Set FeeDepositController operator
-        _executeCore(Protocol.FEE_DEPOSIT, abi.encodeWithSelector(IFeeDeposit.setOperator.selector, newFeeDepositController));
-        
+        _executeCore(
+            Protocol.FEE_DEPOSIT,
+            abi.encodeWithSelector(
+                IFeeDeposit.setOperator.selector,
+                newFeeDepositController
+            )
+        );
+
         console.log("newVoter: %s", newVoter);
         console.log("newUtils: %s", newUtils);
         console.log("newTreasury: %s", newTreasury);
         console.log("newFeeDepositController: %s", newFeeDepositController);
 
-        if (deployMode == DeployMode.PRODUCTION) executeBatch(true, customNonce);
+        if (deployMode == DeployMode.PRODUCTION)
+            executeBatch(true, customNonce);
     }
 
     function updateRegistry() internal {
@@ -76,7 +83,11 @@ contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
         // Set FeeDepositController address in registry
         _executeCore(
             address(Protocol.REGISTRY),
-            abi.encodeWithSelector(IResupplyRegistry.setAddress.selector, "FEE_DEPOSIT_CONTROLLER", newFeeDepositController)
+            abi.encodeWithSelector(
+                IResupplyRegistry.setAddress.selector,
+                "FEE_DEPOSIT_CONTROLLER",
+                newFeeDepositController
+            )
         );
     }
 
@@ -112,7 +123,7 @@ contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
             abi.encodeWithSelector(
                 IInsurancePool.setWithdrawTimers.selector,
                 7 days, // _withdrawLength
-                3 days  // _withdrawWindow
+                3 days // _withdrawWindow
             )
         );
     }
@@ -121,36 +132,50 @@ contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
         bytes32 salt = CreateX.SALT_VOTER;
         bytes memory constructorArgs = abi.encode(
             Protocol.CORE,
-            Protocol.GOV_STAKER, 
-            DeploymentConfig.VOTER_MIN_CREATE_PROPOSAL_PCT, 
+            Protocol.GOV_STAKER,
+            DeploymentConfig.VOTER_MIN_CREATE_PROPOSAL_PCT,
             DeploymentConfig.VOTER_QUORUM_PCT
         );
-        bytes memory bytecode = abi.encodePacked(vm.getCode("Voter.sol:Voter"), constructorArgs);
+        bytes memory bytecode = abi.encodePacked(
+            vm.getCode("Voter.sol:Voter"),
+            constructorArgs
+        );
         addToBatch(
             address(createXFactory),
             encodeCREATE3Deployment(salt, bytecode)
         );
-        address deployedAddress = computeCreate3AddressFromSaltPreimage(salt, deployer, true, false);
+        address deployedAddress = computeCreate3AddressFromSaltPreimage(
+            salt,
+            deployer,
+            true,
+            false
+        );
         require(deployedAddress.code.length > 0, "deployment failed");
         return deployedAddress;
     }
 
     function deployUtilities() public returns (address) {
-        bytes memory constructorArgs = abi.encode(
-            address(Protocol.REGISTRY)
+        bytes memory constructorArgs = abi.encode(address(Protocol.REGISTRY));
+        bytes memory bytecode = abi.encodePacked(
+            vm.getCode("Utilities.sol:Utilities"),
+            constructorArgs
         );
-        bytes memory bytecode = abi.encodePacked(vm.getCode("Utilities.sol:Utilities"), constructorArgs);
         bytes32 salt = buildGuardedSalt(
-            deployer, 
-            true,   // enablePermissionedDeploy
-            false,  // enableCrossChain Protection
+            deployer,
+            true, // enablePermissionedDeploy
+            false, // enableCrossChain Protection
             uint88(uint256(keccak256(bytes("Utilities2"))))
         );
         addToBatch(
             address(createXFactory),
             encodeCREATE3Deployment(salt, bytecode)
         );
-        address deployedAddress = computeCreate3AddressFromSaltPreimage(salt, deployer, true, false);
+        address deployedAddress = computeCreate3AddressFromSaltPreimage(
+            salt,
+            deployer,
+            true,
+            false
+        );
         require(deployedAddress.code.length > 0, "deployment failed");
         return deployedAddress;
     }
@@ -158,12 +183,20 @@ contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
     function deployTreasury() public returns (address) {
         bytes32 salt = CreateX.SALT_TREASURY;
         bytes memory constructorArgs = abi.encode(Protocol.CORE);
-        bytes memory bytecode = abi.encodePacked(vm.getCode("Treasury.sol:Treasury"), constructorArgs);
+        bytes memory bytecode = abi.encodePacked(
+            vm.getCode("Treasury.sol:Treasury"),
+            constructorArgs
+        );
         addToBatch(
             address(createXFactory),
             encodeCREATE3Deployment(salt, bytecode)
         );
-        address deployedAddress = computeCreate3AddressFromSaltPreimage(salt, deployer, true, false);
+        address deployedAddress = computeCreate3AddressFromSaltPreimage(
+            salt,
+            deployer,
+            true,
+            false
+        );
         require(deployedAddress.code.length > 0, "deployment failed");
         return deployedAddress;
     }
@@ -175,18 +208,26 @@ contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
             DeploymentConfig.FEE_SPLIT_IP,
             DeploymentConfig.FEE_SPLIT_TREASURY
         );
-        bytes memory bytecode = abi.encodePacked(vm.getCode("FeeDepositController.sol:FeeDepositController"), constructorArgs);
+        bytes memory bytecode = abi.encodePacked(
+            vm.getCode("FeeDepositController.sol:FeeDepositController"),
+            constructorArgs
+        );
         bytes32 salt = buildGuardedSalt(
-            deployer, 
-            true,   // enablePermissionedDeploy
-            false,  // enableCrossChain Protection
+            deployer,
+            true, // enablePermissionedDeploy
+            false, // enableCrossChain Protection
             uint88(uint256(keccak256(bytes("FeeDepositController2"))))
         );
         addToBatch(
             address(createXFactory),
             encodeCREATE3Deployment(salt, bytecode)
         );
-        address deployedAddress = computeCreate3AddressFromSaltPreimage(salt, deployer, true, false);
+        address deployedAddress = computeCreate3AddressFromSaltPreimage(
+            salt,
+            deployer,
+            true,
+            false
+        );
         require(deployedAddress.code.length > 0, "deployment failed");
         return deployedAddress;
     }
@@ -197,7 +238,11 @@ contract LaunchSetup is TenderlyHelper, CreateXHelper, BaseAction {
         address oldTreasury = 0x44444444DBdC03c7D8291c4f4a093cb200A918FA;
         _executeCore(
             address(oldTreasury),
-            abi.encodeWithSelector(ITreasury.retrieveToken.selector, token, recipient)
+            abi.encodeWithSelector(
+                ITreasury.retrieveToken.selector,
+                token,
+                recipient
+            )
         );
     }
 }

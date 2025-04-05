@@ -8,12 +8,20 @@ pragma solidity 0.8.28;
             wrapper contracts to bundle multiple interactions into a single call.
  */
 contract DelegatedOps {
-    event DelegateApprovalSet(address indexed account, address indexed delegate, bool isApproved);
+    event DelegateApprovalSet(
+        address indexed account,
+        address indexed delegate,
+        bool isApproved
+    );
 
-    mapping(address owner => mapping(address caller => bool isApproved)) public isApprovedDelegate;
+    mapping(address owner => mapping(address caller => bool isApproved))
+        public isApprovedDelegate;
 
     modifier callerOrDelegated(address _account) {
-        require(msg.sender == _account || isApprovedDelegate[_account][msg.sender], "!CallerOrDelegated");
+        require(
+            msg.sender == _account || isApprovedDelegate[_account][msg.sender],
+            "!CallerOrDelegated"
+        );
         _;
     }
 

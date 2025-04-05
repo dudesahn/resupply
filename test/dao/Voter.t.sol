@@ -2,14 +2,14 @@ pragma solidity ^0.8.22;
 
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { GovStaker } from "../../src/dao/staking/GovStaker.sol";
-import { GovStakerEscrow } from "../../src/dao/staking/GovStakerEscrow.sol";
-import { MockToken } from "../mocks/MockToken.sol";
-import { Setup } from "../Setup.sol";
-import { MockPair } from "../mocks/MockPair.sol";
-import { Voter } from "../../src/dao/Voter.sol";
-import { IVoter } from "../../src/interfaces/IVoter.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {GovStaker} from "../../src/dao/staking/GovStaker.sol";
+import {GovStakerEscrow} from "../../src/dao/staking/GovStakerEscrow.sol";
+import {MockToken} from "../mocks/MockToken.sol";
+import {Setup} from "../Setup.sol";
+import {MockPair} from "../mocks/MockPair.sol";
+import {Voter} from "../../src/dao/Voter.sol";
+import {IVoter} from "../../src/interfaces/IVoter.sol";
 
 contract VoterTest is Setup {
     MockPair pair;
@@ -17,7 +17,7 @@ contract VoterTest is Setup {
 
     function setUp() public override {
         super.setUp();
-        
+
         MAX_PCT = voter.MAX_PCT();
 
         // Create a mock protocol contract for us to test with
@@ -35,13 +35,18 @@ contract VoterTest is Setup {
 
     function test_createProposal() public {
         uint256 proposalId = 69; // Set to a non-zero number to start with
-        uint256 epoch = voter.getEpoch()-1; // Prior epoch to be used for voting
+        uint256 epoch = voter.getEpoch() - 1; // Prior epoch to be used for voting
 
         // String size: 408 bytes
-        string memory longInvalidDescription = "here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats.here is a very long string that repeats.";
+        string
+            memory longInvalidDescription = "here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats.here is a very long string that repeats.";
         // String size: 368 bytes
-        string memory longValidDescrition = "here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats.";
-        uint256 quorumWeight = uint40(staker.getTotalWeightAt(epoch) / 10 ** voter.TOKEN_DECIMALS() * voter.quorumPct() / 10_000);
+        string
+            memory longValidDescrition = "here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats. here is a very long string that repeats.";
+        uint256 quorumWeight = uint40(
+            ((staker.getTotalWeightAt(epoch) / 10 ** voter.TOKEN_DECIMALS()) *
+                voter.quorumPct()) / 10_000
+        );
         vm.expectRevert("Description too long");
         vm.prank(user1);
         proposalId = voter.createNewProposal(
@@ -52,10 +57,10 @@ contract VoterTest is Setup {
 
         vm.expectEmit(true, true, false, true);
         emit Voter.ProposalCreated(
-            user1, 
-            0, 
-            buildProposalData(5), 
-            voter.getEpoch()-1, 
+            user1,
+            0,
+            buildProposalData(5),
+            voter.getEpoch() - 1,
             quorumWeight
         );
         vm.prank(user1);
@@ -80,7 +85,7 @@ contract VoterTest is Setup {
             buildProposalData(5),
             "Test proposal"
         );
-        
+
         vm.prank(user1);
         voter.setDelegateApproval(user2, true);
         assertEq(voter.isApprovedDelegate(user1, user2), true);
@@ -110,7 +115,7 @@ contract VoterTest is Setup {
 
     function test_voteForProposal() public {
         uint256 proposalId = 69; // Set to a non-zero number to start with
-        uint256 epoch = voter.getEpoch()-1; // Prior epoch to be used for voting
+        uint256 epoch = voter.getEpoch() - 1; // Prior epoch to be used for voting
         vm.prank(user1);
         proposalId = voter.createNewProposal(
             user1,
@@ -120,9 +125,9 @@ contract VoterTest is Setup {
 
         vm.startPrank(user1);
         vm.expectRevert("Sum of pcts must equal MAX_PCT");
-        voter.voteForProposal(user1, proposalId, MAX_PCT+1, MAX_PCT);
+        voter.voteForProposal(user1, proposalId, MAX_PCT + 1, MAX_PCT);
         vm.expectRevert("Sum of pcts must equal MAX_PCT");
-        voter.voteForProposal(user1, proposalId, MAX_PCT, MAX_PCT+1);
+        voter.voteForProposal(user1, proposalId, MAX_PCT, MAX_PCT + 1);
         vm.expectRevert("Sum of pcts must equal MAX_PCT");
         voter.voteForProposal(user1, proposalId, MAX_PCT, 1);
         vm.expectRevert("Sum of pcts must equal MAX_PCT");
@@ -133,7 +138,7 @@ contract VoterTest is Setup {
         voter.voteForProposal(user1, proposalId);
 
         vm.stopPrank();
-        
+
         assertEq(voter.quorumReached(proposalId), true);
         assertEq(voter.canExecute(proposalId), false);
         skip(voter.VOTING_PERIOD());
@@ -151,6 +156,7 @@ contract VoterTest is Setup {
             uint256 _weightNo,
             bool _processed,
             bool _executable,
+
         ) = voter.getProposalData(proposalId);
         assertEq(epoch, _epoch);
         assertGt(_createdAt, 0);
@@ -175,13 +181,17 @@ contract VoterTest is Setup {
     function test_cancelProposal() public {
         bool _processed;
         vm.prank(user1);
-        uint256 propId = voter.createNewProposal(user1, buildProposalData(5), "Test proposal");
-        (,,,,,,_processed,,) = voter.getProposalData(propId);
+        uint256 propId = voter.createNewProposal(
+            user1,
+            buildProposalData(5),
+            "Test proposal"
+        );
+        (, , , , , , _processed, , ) = voter.getProposalData(propId);
         assertEq(_processed, false);
 
         vm.prank(address(core));
         voter.cancelProposal(propId);
-        (,,,,,,_processed,,) = voter.getProposalData(propId);
+        (, , , , , , _processed, , ) = voter.getProposalData(propId);
         assertEq(_processed, true);
     }
 
@@ -197,7 +207,9 @@ contract VoterTest is Setup {
         createProposalDataWithCancelerAsNonFirstAction();
     }
 
-    function test_CannotCancelProposalWithCancelerPayloadAndTargetIsZeroAddress() public {
+    function test_CannotCancelProposalWithCancelerPayloadAndTargetIsZeroAddress()
+        public
+    {
         uint256 propId = createProposalDataWithCancelerAndTargetIsZeroAddress();
         vm.prank(address(core));
         vm.expectRevert("Contains canceler payload");
@@ -211,11 +223,15 @@ contract VoterTest is Setup {
         voter.updateProposalDescription(propId, "New description");
         vm.prank(address(core));
         voter.updateProposalDescription(propId, "New description!");
-        (string memory _description,,,,,,,,) = voter.getProposalData(propId);
+        (string memory _description, , , , , , , , ) = voter.getProposalData(
+            propId
+        );
         assertEq(_description, "New description!");
     }
 
-    function buildProposalData(uint256 _value) public view returns (Voter.Action[] memory) {
+    function buildProposalData(
+        uint256 _value
+    ) public view returns (Voter.Action[] memory) {
         Voter.Action[] memory payload = new Voter.Action[](1);
         payload[0] = Voter.Action({
             target: address(pair),
@@ -229,10 +245,10 @@ contract VoterTest is Setup {
         payload[0] = Voter.Action({
             target: address(core),
             data: abi.encodeWithSelector(
-                core.setOperatorPermissions.selector, 
+                core.setOperatorPermissions.selector,
                 address(0),
-                address(voter), 
-                IVoter.cancelProposal.selector, 
+                address(voter),
+                IVoter.cancelProposal.selector,
                 true,
                 address(0)
             )
@@ -241,7 +257,10 @@ contract VoterTest is Setup {
         return voter.createNewProposal(user1, payload, "Test proposal");
     }
 
-    function createProposalDataWithCancelerAsNonFirstAction() public returns (uint256) {
+    function createProposalDataWithCancelerAsNonFirstAction()
+        public
+        returns (uint256)
+    {
         Voter.Action[] memory payload = new Voter.Action[](2);
         // Dummy action
         payload[0] = Voter.Action({
@@ -252,10 +271,10 @@ contract VoterTest is Setup {
         payload[1] = Voter.Action({
             target: address(core),
             data: abi.encodeWithSelector(
-                core.setOperatorPermissions.selector, 
+                core.setOperatorPermissions.selector,
                 address(0),
-                address(voter), 
-                IVoter.cancelProposal.selector, 
+                address(voter),
+                IVoter.cancelProposal.selector,
                 true,
                 address(0)
             )
@@ -264,15 +283,18 @@ contract VoterTest is Setup {
         return voter.createNewProposal(user1, payload, "Test proposal");
     }
 
-    function createProposalDataWithCancelerAndTargetIsZeroAddress() public returns (uint256) {
+    function createProposalDataWithCancelerAndTargetIsZeroAddress()
+        public
+        returns (uint256)
+    {
         Voter.Action[] memory payload = new Voter.Action[](1);
         payload[0] = Voter.Action({
             target: address(core),
             data: abi.encodeWithSelector(
-                core.setOperatorPermissions.selector, 
+                core.setOperatorPermissions.selector,
                 address(0),
-                address(0), 
-                IVoter.cancelProposal.selector, 
+                address(0),
+                IVoter.cancelProposal.selector,
                 true,
                 address(0)
             )
@@ -292,7 +314,7 @@ contract VoterTest is Setup {
         voter.setMinCreateProposalPct(0);
 
         vm.expectRevert("Invalid value");
-        voter.setMinCreateProposalPct(MAX_PCT+1);
+        voter.setMinCreateProposalPct(MAX_PCT + 1);
         vm.stopPrank();
     }
 
@@ -307,7 +329,7 @@ contract VoterTest is Setup {
         voter.setQuorumPct(0);
 
         vm.expectRevert("Invalid value");
-        voter.setQuorumPct(MAX_PCT+1);
+        voter.setQuorumPct(MAX_PCT + 1);
         vm.stopPrank();
     }
 
@@ -315,10 +337,7 @@ contract VoterTest is Setup {
         Voter.Action[] memory payload = new Voter.Action[](1);
         payload[0] = Voter.Action({
             target: address(pair),
-            data: abi.encodeWithSelector(
-                pair.setValue.selector, 
-                5
-            )
+            data: abi.encodeWithSelector(pair.setValue.selector, 5)
         });
         vm.prank(user1);
         return voter.createNewProposal(user1, payload, "Test proposal");

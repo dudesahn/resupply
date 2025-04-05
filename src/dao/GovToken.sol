@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { OFT } from "@layerzerolabs/oft-evm/contracts/OFT.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OFT} from "@layerzerolabs/oft-evm/contracts/OFT.sol";
 
 contract GovToken is OFT {
     uint256 public immutable INITIAL_SUPPLY;
@@ -25,21 +25,20 @@ contract GovToken is OFT {
         address _endpoint,
         string memory _name,
         string memory _symbol
-    ) OFT(_name, _symbol, _endpoint, _core)
-      Ownable(_core) {
+    ) OFT(_name, _symbol, _endpoint, _core) Ownable(_core) {
         INITIAL_SUPPLY = _initialSupply;
         _mint(_vesting, _initialSupply);
         globalSupply = _initialSupply;
     }
 
-    function core() external view returns(address) {
+    function core() external view returns (address) {
         return owner();
     }
 
     function _transferOwnership(address newOwner) internal override {
-        if(owner() == address(0)){
+        if (owner() == address(0)) {
             super._transferOwnership(newOwner);
-        }else{
+        } else {
             revert OwnableInvalidOwner(newOwner);
         }
     }

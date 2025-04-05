@@ -41,11 +41,12 @@ pragma solidity 0.8.28;
 */
 
 import "../libraries/MathUtil.sol";
-import { IResupplyRegistry } from "../interfaces/IResupplyRegistry.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "../libraries/SafeERC20.sol";
-import { CoreOwnable } from '../dependencies/CoreOwnable.sol';
-import { IERC20Decimals } from "../interfaces/IERC20Decimals.sol";
+import {IResupplyRegistry} from "../interfaces/IResupplyRegistry.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "../libraries/SafeERC20.sol";
+import {CoreOwnable} from "../dependencies/CoreOwnable.sol";
+import {IERC20Decimals} from "../interfaces/IERC20Decimals.sol";
+
 /*
  a managed single reward contract which can set weights for any account address
 */
@@ -64,30 +65,42 @@ contract SimpleRewardStreamer is CoreOwnable {
     uint256 public queuedRewards;
     uint256 public currentRewards;
     uint256 public historicalRewards;
-    
+
     uint256 private _totalSupply;
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
     mapping(address => uint256) private _balances;
     mapping(address => address) public rewardRedirect;
-    
+
     event RewardAdded(uint256 reward);
     event WeightSet(address indexed user, uint256 oldWeight, uint256 newWeight);
     event RewardPaid(address indexed user, uint256 reward);
     event RewardRedirected(address indexed user, address redirect);
 
-    constructor(address _core, address _registry, address _rewardToken, address _initialWeightAddress) CoreOwnable(_core){
+    constructor(
+        address _core,
+        address _registry,
+        address _rewardToken,
+        address _initialWeightAddress
+    ) CoreOwnable(_core) {
         registry = _registry;
         rewardToken = IERC20(_rewardToken);
-        require(IERC20Decimals(_rewardToken).decimals() == 18, "18 decimals required"); // Guard against precision loss.
+        require(
+            IERC20Decimals(_rewardToken).decimals() == 18,
+            "18 decimals required"
+        ); // Guard against precision loss.
         //set an initial target address weight
-        if(_initialWeightAddress != address(0)){
+        if (_initialWeightAddress != address(0)) {
             _setWeight(_initialWeightAddress, 1e18);
         }
     }
 
     modifier onlyRewardManager() {
-        require(msg.sender == owner() || msg.sender == IResupplyRegistry(registry).rewardHandler(), "!rewardManager");
+        require(
+            msg.sender == owner() ||
+                msg.sender == IResupplyRegistry(registry).rewardHandler(),
+            "!rewardManager"
+        );
         _;
     }
 
@@ -114,9 +127,7 @@ contract SimpleRewardStreamer is CoreOwnable {
     }
 
     //checkpoint a given user
-    function user_checkpoint(address _account) public updateReward(_account){
-
-    }
+    function user_checkpoint(address _account) public updateReward(_account) {}
 
     //claim time to period finish
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -128,35 +139,46 @@ contract SimpleRewardStreamer is CoreOwnable {
         if (totalSupply() == 0) {
             return rewardPerTokenStored;
         }
-        return rewardPerTokenStored + ((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18 / totalSupply());
+        return
+            rewardPerTokenStored +
+            (((lastTimeRewardApplicable() - lastUpdateTime) *
+                rewardRate *
+                1e18) / totalSupply());
     }
 
     //earned rewards for given account
     function earned(address _account) public view returns (uint256) {
-        return rewards[_account] + (balanceOf(_account) * (rewardPerToken() - userRewardPerTokenPaid[_account]) / 1e18);
+        return
+            rewards[_account] +
+            ((balanceOf(_account) *
+                (rewardPerToken() - userRewardPerTokenPaid[_account])) / 1e18);
     }
 
     //increase reward weight for a given pool
     //used by reward manager
-    function setWeight(address _account, uint256 _amount) external onlyRewardManager returns(bool){
+    function setWeight(
+        address _account,
+        uint256 _amount
+    ) external onlyRewardManager returns (bool) {
         return _setWeight(_account, _amount);
     }
 
     //increase reward weight for a list of pools
     //used by reward manager
-    function setWeights(address[] calldata _account, uint256[] calldata _amount) external onlyRewardManager{
-
-        for(uint256 i = 0; i < _account.length; i++){
+    function setWeights(
+        address[] calldata _account,
+        uint256[] calldata _amount
+    ) external onlyRewardManager {
+        for (uint256 i = 0; i < _account.length; i++) {
             _setWeight(_account[i], _amount[i]);
         }
     }
 
     //internal set weight
-    function _setWeight(address _account, uint256 _amount)
-        internal
-        updateReward(_account)
-        returns(bool)
-    {
+    function _setWeight(
+        address _account,
+        uint256 _amount
+    ) internal updateReward(_account) returns (bool) {
         uint256 currentBalance = _balances[_account];
         emit WeightSet(_account, currentBalance, _amount);
 
@@ -171,26 +193,26 @@ contract SimpleRewardStreamer is CoreOwnable {
 
     //set any claimed rewards to automatically go to a different address
     //set address to zero to disable
-    function setRewardRedirect(address _to) external{
+    function setRewardRedirect(address _to) external {
         rewardRedirect[msg.sender] = _to;
         emit RewardRedirected(msg.sender, _to);
     }
 
-    function getReward() external{
+    function getReward() external {
         getReward(msg.sender);
     }
 
     //claim reward for given account (unguarded)
-    function getReward(address _account) public updateReward(_account){
+    function getReward(address _account) public updateReward(_account) {
         uint256 reward = rewards[_account]; //earned is called in updateReward and thus up to date
         if (reward > 0) {
             rewards[_account] = 0;
             emit RewardPaid(_account, reward);
             //check if there is a redirect address
             address redirect = rewardRedirect[_account];
-            if(redirect != address(0)){
+            if (redirect != address(0)) {
                 rewardToken.safeTransfer(redirect, reward);
-            }else{
+            } else {
                 //normal claim to account address
                 rewardToken.safeTransfer(_account, reward);
             }
@@ -198,7 +220,10 @@ contract SimpleRewardStreamer is CoreOwnable {
     }
 
     //claim reward for given account and forward (guarded)
-    function getReward(address _account, address _forwardTo) external updateReward(_account){
+    function getReward(
+        address _account,
+        address _forwardTo
+    ) external updateReward(_account) {
         //in order to forward, must be called by the account itself
         require(msg.sender == _account, "!self");
         require(_forwardTo != address(0), "fwd address cannot be 0");
@@ -213,18 +238,27 @@ contract SimpleRewardStreamer is CoreOwnable {
     }
 
     //outside address add to rewards
-    function donate(uint256 _amount) external returns(bool){
-        IERC20(rewardToken).safeTransferFrom(msg.sender, address(this), _amount);
+    function donate(uint256 _amount) external returns (bool) {
+        IERC20(rewardToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
         queuedRewards += _amount;
         return true;
     }
 
     //distributor can add more rewards and start new reward cycle
-    function queueNewRewards(uint256 _rewards) external onlyRewardManager returns(bool){
-
+    function queueNewRewards(
+        uint256 _rewards
+    ) external onlyRewardManager returns (bool) {
         //pull
-        if(_rewards > 0){
-            IERC20(rewardToken).safeTransferFrom(msg.sender, address(this), _rewards);
+        if (_rewards > 0) {
+            IERC20(rewardToken).safeTransferFrom(
+                msg.sender,
+                address(this),
+                _rewards
+            );
         }
 
         //notify pulled + queued
@@ -234,12 +268,10 @@ contract SimpleRewardStreamer is CoreOwnable {
         return true;
     }
 
-
     //internal: start new reward cycle
-    function notifyRewardAmount(uint256 reward)
-        internal
-        updateReward(address(0))
-    {
+    function notifyRewardAmount(
+        uint256 reward
+    ) internal updateReward(address(0)) {
         historicalRewards += reward;
         if (block.timestamp >= periodFinish) {
             rewardRate = reward / duration;

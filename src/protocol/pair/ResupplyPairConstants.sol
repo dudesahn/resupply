@@ -7,7 +7,6 @@ pragma solidity 0.8.28;
  */
 
 abstract contract ResupplyPairConstants {
-
     // Precision settings
     uint256 public constant LTV_PRECISION = 1e5; // 5 decimals
     uint256 public constant LIQ_PRECISION = 1e5;
@@ -15,7 +14,11 @@ abstract contract ResupplyPairConstants {
     uint256 public constant RATE_PRECISION = 1e18;
     uint256 public constant SHARE_REFACTOR_PRECISION = 1e12;
     uint256 public constant PAIR_DECIMALS = 1e18;
-    error Insolvent(uint256 _borrow, uint256 _collateral, uint256 _exchangeRate);
+    error Insolvent(
+        uint256 _borrow,
+        uint256 _collateral,
+        uint256 _exchangeRate
+    );
     error BorrowerSolvent();
     error InsufficientDebtAvailable(uint256 _assets, uint256 _request);
     error SlippageTooHigh(uint256 _minOut, uint256 _actual);

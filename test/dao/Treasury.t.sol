@@ -2,12 +2,11 @@ pragma solidity ^0.8.22;
 
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
-import { Setup } from "../Setup.sol";
-import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Setup} from "../Setup.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TreasuryTest is Setup {
-
     function setUp() public override {
         super.setUp();
         deal(address(govToken), address(treasury), 1_000_000 * 10 ** 18);
@@ -16,21 +15,31 @@ contract TreasuryTest is Setup {
 
     function test_SetTokenApproval() public {
         vm.prank(address(user1));
-        vm.expectRevert(abi.encodeWithSelector(
-            IERC20Errors.ERC20InsufficientAllowance.selector,
-            user1,
-            0,
-            1
-        ));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector,
+                user1,
+                0,
+                1
+            )
+        );
         govToken.transferFrom(address(treasury), address(user1), 1);
 
         vm.prank(address(core));
-        treasury.setTokenApproval(address(govToken), address(user1), type(uint256).max);
-        
+        treasury.setTokenApproval(
+            address(govToken),
+            address(user1),
+            type(uint256).max
+        );
+
         uint256 treasuryBalance = govToken.balanceOf(address(treasury));
         uint256 preBalance = govToken.balanceOf(address(user1));
         vm.prank(address(user1));
-        govToken.transferFrom(address(treasury), address(user1), treasuryBalance);
+        govToken.transferFrom(
+            address(treasury),
+            address(user1),
+            treasuryBalance
+        );
         uint256 postBalance = govToken.balanceOf(address(user1));
         assertEq(postBalance - preBalance, treasuryBalance);
         assertEq(govToken.balanceOf(address(treasury)), 0);
@@ -93,16 +102,43 @@ contract TreasuryTest is Setup {
 
     function test_Execute() public {
         vm.expectRevert("!core");
-        treasury.safeExecute(address(stablecoin), abi.encodeWithSelector(IERC20.approve.selector, address(user1), type(uint256).max));
-        
+        treasury.safeExecute(
+            address(stablecoin),
+            abi.encodeWithSelector(
+                IERC20.approve.selector,
+                address(user1),
+                type(uint256).max
+            )
+        );
+
         vm.expectRevert("!core");
-        treasury.execute(address(stablecoin), abi.encodeWithSelector(IERC20.approve.selector, address(user1), type(uint256).max));
+        treasury.execute(
+            address(stablecoin),
+            abi.encodeWithSelector(
+                IERC20.approve.selector,
+                address(user1),
+                type(uint256).max
+            )
+        );
 
         vm.prank(address(core));
-        treasury.execute(address(stablecoin), abi.encodeWithSelector(IERC20.approve.selector, address(user1), type(uint256).max));
+        treasury.execute(
+            address(stablecoin),
+            abi.encodeWithSelector(
+                IERC20.approve.selector,
+                address(user1),
+                type(uint256).max
+            )
+        );
 
         vm.prank(address(core));
-        treasury.safeExecute(address(stablecoin), abi.encodeWithSelector(IERC20.approve.selector, address(user1), type(uint256).max));
+        treasury.safeExecute(
+            address(stablecoin),
+            abi.encodeWithSelector(
+                IERC20.approve.selector,
+                address(user1),
+                type(uint256).max
+            )
+        );
     }
-    
 }

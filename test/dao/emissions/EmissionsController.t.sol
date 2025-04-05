@@ -1,15 +1,14 @@
 pragma solidity ^0.8.22;
 
-import { console } from "lib/forge-std/src/console.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { Setup } from "test/Setup.sol";
-import { EmissionsController } from "src/dao/emissions/EmissionsController.sol";
-import { GovToken } from "src/dao/GovToken.sol";
-import { MockReceiver } from "test/mocks/MockReceiver.sol";
-import { DeploymentConfig } from "script/deploy/dependencies/DeploymentConfig.sol";
+import {console} from "lib/forge-std/src/console.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Setup} from "test/Setup.sol";
+import {EmissionsController} from "src/dao/emissions/EmissionsController.sol";
+import {GovToken} from "src/dao/GovToken.sol";
+import {MockReceiver} from "test/mocks/MockReceiver.sol";
+import {DeploymentConfig} from "script/deploy/dependencies/DeploymentConfig.sol";
 
 contract EmissionsControllerTest is Setup {
-
     uint256 public constant DUST = 100;
     MockReceiver public mockReceiver1;
     MockReceiver public mockReceiver2;
@@ -22,20 +21,32 @@ contract EmissionsControllerTest is Setup {
             address(core), // core
             address(govToken), // govtoken
             getEmissionsSchedule(), // emissions
-            DeploymentConfig.EMISSIONS_CONTROLLER_EPOCHS_PER,       // epochs per
-            DeploymentConfig.EMISSIONS_CONTROLLER_TAIL_RATE,        // tail rate
-            DeploymentConfig.EMISSIONS_CONTROLLER_BOOTSTRAP_EPOCHS  // bootstrap epochs
+            DeploymentConfig.EMISSIONS_CONTROLLER_EPOCHS_PER, // epochs per
+            DeploymentConfig.EMISSIONS_CONTROLLER_TAIL_RATE, // tail rate
+            DeploymentConfig.EMISSIONS_CONTROLLER_BOOTSTRAP_EPOCHS // bootstrap epochs
         );
         govToken.setMinter(address(emissionsController));
 
-        mockReceiver1 = new MockReceiver(address(core), address(emissionsController), "Mock Receiver 1");
-        mockReceiver2 = new MockReceiver(address(core), address(emissionsController), "Mock Receiver 2");
-        mockReceiver3 = new MockReceiver(address(core), address(emissionsController), "Mock Receiver 3");
+        mockReceiver1 = new MockReceiver(
+            address(core),
+            address(emissionsController),
+            "Mock Receiver 1"
+        );
+        mockReceiver2 = new MockReceiver(
+            address(core),
+            address(emissionsController),
+            "Mock Receiver 2"
+        );
+        mockReceiver3 = new MockReceiver(
+            address(core),
+            address(emissionsController),
+            "Mock Receiver 3"
+        );
 
         vm.stopPrank();
     }
 
-    function test_EmissionsTotalSupplyAfterFiveYears() public { 
+    function test_EmissionsTotalSupplyAfterFiveYears() public {
         vm.prank(address(core));
         emissionsController.registerReceiver(address(mockReceiver1));
 
@@ -45,26 +56,30 @@ contract EmissionsControllerTest is Setup {
         uint256 amount;
 
         skip(emissionsController.BOOTSTRAP_EPOCHS() * epochLength);
-        
+
         for (uint256 i = 0; i < 5; i++) {
             skip(year);
             vm.prank(address(mockReceiver1));
             amount += emissionsController.fetchEmissions();
-            console.log("end of year %d supply: %d", i+1, govToken.globalSupply()/1e18);
+            console.log(
+                "end of year %d supply: %d",
+                i + 1,
+                govToken.globalSupply() / 1e18
+            );
             // console.log("minted a total of: %d", amount);
         }
 
         uint256 EXPECTED_SUPPLY_AFTER_5_YEARS = 100_000_000e18;
         uint256 MAX_ALLOWED_DIFFERENCE = 1e18;
         assertApproxEqAbs(
-            govToken.globalSupply(), 
-            EXPECTED_SUPPLY_AFTER_5_YEARS, 
-            MAX_ALLOWED_DIFFERENCE,  // maximum absolute difference allowed
+            govToken.globalSupply(),
+            EXPECTED_SUPPLY_AFTER_5_YEARS,
+            MAX_ALLOWED_DIFFERENCE, // maximum absolute difference allowed
             "Global supply outside acceptable range"
         );
     }
 
-    function test_EmissionsAvailableOnFirstEpoch() public { 
+    function test_EmissionsAvailableOnFirstEpoch() public {
         vm.prank(address(core));
         emissionsController.registerReceiver(address(mockReceiver1));
         skip(epochLength); // enter epoch 1
@@ -75,16 +90,20 @@ contract EmissionsControllerTest is Setup {
     }
 
     function test_DefaultEmissionsSchedule() public {
-        assertFalse(emissionsController.isRegisteredReceiver(address(mockReceiver1)));
+        assertFalse(
+            emissionsController.isRegisteredReceiver(address(mockReceiver1))
+        );
         vm.prank(address(core));
         emissionsController.registerReceiver(address(mockReceiver1)); // Defaults to 100% weight
-        assertTrue(emissionsController.isRegisteredReceiver(address(mockReceiver1)));
+        assertTrue(
+            emissionsController.isRegisteredReceiver(address(mockReceiver1))
+        );
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 expected = getExpectedEmissions(
                 emissionsController,
-                getEmissionsRate(), 
-                govToken.totalSupply(), 
+                getEmissionsRate(),
+                govToken.totalSupply(),
                 getEpoch()
             );
 
@@ -96,7 +115,9 @@ contract EmissionsControllerTest is Setup {
         }
     }
 
-    function test_UpdateScheduleBeforeReceiversAreRegisteredDoesNotMint() public {
+    function test_UpdateScheduleBeforeReceiversAreRegisteredDoesNotMint()
+        public
+    {
         uint256 startSupply = govToken.totalSupply();
         uint256[] memory rates = new uint256[](2);
         rates[0] = 100;
@@ -107,7 +128,7 @@ contract EmissionsControllerTest is Setup {
         skipToFirstEmissionsEpoch();
 
         // Make sure emissions cannot mint without receivers
-        skip(epochLength*5);
+        skip(epochLength * 5);
         vm.prank(address(core));
         emissionsController.setEmissionsSchedule(rates, epochsPer, tailRate);
         assertEq(govToken.totalSupply(), startSupply);
@@ -136,7 +157,11 @@ contract EmissionsControllerTest is Setup {
         uint256 amount;
 
         for (uint256 i = 0; i < emissionsController.nextReceiverId(); i++) {
-            (bool active, address receiver, uint256 weight) = emissionsController.idToReceiver(i);
+            (
+                bool active,
+                address receiver,
+                uint256 weight
+            ) = emissionsController.idToReceiver(i);
             vm.prank(receiver);
             uint256 amount = emissionsController.fetchEmissions();
         }
@@ -146,7 +171,11 @@ contract EmissionsControllerTest is Setup {
         vm.prank(address(core));
         emissionsController.registerReceiver(address(mockReceiver2));
         for (uint256 i = 0; i < emissionsController.nextReceiverId(); i++) {
-            (bool active, address receiver, uint256 weight) = emissionsController.idToReceiver(i);
+            (
+                bool active,
+                address receiver,
+                uint256 weight
+            ) = emissionsController.idToReceiver(i);
             vm.prank(receiver);
             uint256 amount = emissionsController.fetchEmissions();
         }
@@ -158,10 +187,10 @@ contract EmissionsControllerTest is Setup {
         weights[0] = 2_001; // Exceeds 100% by 1 BPS
         vm.expectRevert("Total weight must be 100%");
         setNewWeights(receiverIds, weights);
-        
+
         weights[0] = 2_000; // Fix weight so the aggregate is now 100% even
         setNewWeights(receiverIds, weights);
-        
+
         checkTotalAllocatedMatchesECBalance();
 
         skip(epochLength); // enter epoch 3
@@ -183,7 +212,7 @@ contract EmissionsControllerTest is Setup {
         weights2[0] = 5_500;
         weights2[1] = 3_500;
         setNewWeights(receiverIds2, weights2);
-        
+
         checkTotalAllocatedMatchesECBalance();
 
         skip(epochLength); // enter epoch 6
@@ -191,14 +220,13 @@ contract EmissionsControllerTest is Setup {
         checkTotalAllocatedMatchesECBalance();
     }
 
-    function setNewWeights(uint256[] memory receiverIds, uint256[] memory weights) internal {
+    function setNewWeights(
+        uint256[] memory receiverIds,
+        uint256[] memory weights
+    ) internal {
         vm.prank(address(core));
-        emissionsController.setReceiverWeights(
-            receiverIds,
-            weights
-        );
+        emissionsController.setReceiverWeights(receiverIds, weights);
     }
-
 
     function test_NoReceiversConnected() public {
         uint256 i;
@@ -215,17 +243,16 @@ contract EmissionsControllerTest is Setup {
             assertEq(emissionsController.nextReceiverId(), 1);
             uint256 expected = getExpectedEmissions(
                 emissionsController,
-                getEmissionsRate(), 
+                getEmissionsRate(),
                 govToken.totalSupply(),
                 getEpoch()
             );
-            
+
             vm.prank(address(mockReceiver1));
             uint256 amount = emissionsController.fetchEmissions();
             if (i != 0) assertEq(expected, amount);
             else assertGt(amount, expected); // First iteration will mint multiple epochs worth
         }
-
     }
 
     function test_PreventDuplicateReceiver() public {
@@ -252,14 +279,14 @@ contract EmissionsControllerTest is Setup {
         }
 
         uint alloc = mockReceiver1.allocateEmissions(); // triggers ec.fetchEmissions()
-        (bool active, ,) = emissionsController.idToReceiver(id);
+        (bool active, , ) = emissionsController.idToReceiver(id);
         govToken.balanceOf(address(mockReceiver1));
         if (!active) assertEq(alloc, 0);
         else assertGt(alloc, 0);
         // Verify we can recover unallocated
         uint256 unallocated = emissionsController.unallocated();
         assertGt(unallocated, 0);
-        
+
         uint coreBalance = govToken.balanceOf(address(core));
         emissionsController.recoverUnallocated(address(core));
         assertEq(emissionsController.unallocated(), 0);
@@ -316,10 +343,10 @@ contract EmissionsControllerTest is Setup {
         rates[1] = 100;
         uint256 epochsPer = 1;
         uint256 tailRate = 98;
-        
+
         emissionsController.setEmissionsSchedule(rates, epochsPer, tailRate);
         vm.stopPrank();
-        
+
         uint256 epochsUntilTail = rates.length * epochsPer;
 
         skipToFirstEmissionsEpoch();
@@ -332,8 +359,7 @@ contract EmissionsControllerTest is Setup {
             // if schedule is exhausted, assert that tail rate is active
             if (getEpoch() - startEpoch > epochsUntilTail) {
                 assertEq(emissionsController.emissionsRate(), tailRate);
-            }
-            else {
+            } else {
                 assertGt(emissionsController.emissionsRate(), tailRate);
             }
         }
@@ -347,7 +373,11 @@ contract EmissionsControllerTest is Setup {
         uint256 nextId = emissionsController.nextReceiverId();
         assertGe(nextId, 3);
         for (uint256 i = 0; i < nextId; i++) {
-            (bool active, address receiver, uint256 weight) = emissionsController.idToReceiver(i);
+            (
+                bool active,
+                address receiver,
+                uint256 weight
+            ) = emissionsController.idToReceiver(i);
             assertEq(active, true);
         }
     }
@@ -375,18 +405,31 @@ contract EmissionsControllerTest is Setup {
         uint200 allocatedBefore;
         uint200 allocatedAfter;
         for (uint256 i = 0; i < emissionsController.nextReceiverId(); i++) {
-            (bool active, address receiver, uint256 weight) = emissionsController.idToReceiver(i);
+            (
+                bool active,
+                address receiver,
+                uint256 weight
+            ) = emissionsController.idToReceiver(i);
             (, allocatedBefore) = emissionsController.allocated(receiver);
             vm.prank(receiver);
             uint256 amount = emissionsController.fetchEmissions();
             (, allocatedAfter) = emissionsController.allocated(receiver);
             totalAmount += allocatedAfter;
         }
-        assertApproxEqAbs(totalAmount, govToken.balanceOf(address(emissionsController)), DUST);
+        assertApproxEqAbs(
+            totalAmount,
+            govToken.balanceOf(address(emissionsController)),
+            DUST
+        );
     }
 
-    function getExpectedEmissions(EmissionsController ec, uint256 rate, uint256 supply, uint256 epoch) public view returns (uint256) {
-        uint256 expected = supply * rate * epochLength / 365 days / 1e18;
+    function getExpectedEmissions(
+        EmissionsController ec,
+        uint256 rate,
+        uint256 supply,
+        uint256 epoch
+    ) public view returns (uint256) {
+        uint256 expected = (supply * rate * epochLength) / 365 days / 1e18;
         return epoch <= ec.BOOTSTRAP_EPOCHS() ? 0 : expected;
     }
 
@@ -397,7 +440,9 @@ contract EmissionsControllerTest is Setup {
         if (lastEmissionsUpdate > epoch) return rate;
         if (epoch - lastEmissionsUpdate >= emissionsController.epochsPer()) {
             rate = emissionsController.getScheduleLength() > 0
-                ? emissionsController.getSchedule()[emissionsController.getScheduleLength() - 1]
+                ? emissionsController.getSchedule()[
+                    emissionsController.getScheduleLength() - 1
+                ]
                 : emissionsController.tailRate();
         }
         return rate;
@@ -412,8 +457,8 @@ contract EmissionsControllerTest is Setup {
         uint256 timeSinceStart = block.timestamp - core.startTime();
         uint256 epochLength = core.epochLength();
         skip(
-            (epochLength - timeSinceStart) + 
-            (emissionsController.BOOTSTRAP_EPOCHS() * epochLength)
+            (epochLength - timeSinceStart) +
+                (emissionsController.BOOTSTRAP_EPOCHS() * epochLength)
         );
     }
 }

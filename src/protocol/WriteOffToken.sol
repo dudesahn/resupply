@@ -12,38 +12,36 @@ interfaces needed:
 
 */
 contract WriteOffToken {
-
     address public immutable owner;
     uint256 public totalSupply;
 
-    constructor(address _owner)
-    {
+    constructor(address _owner) {
         owner = _owner;
     }
 
-    function name() external pure returns (string memory){
+    function name() external pure returns (string memory) {
         return "WriteOffToken";
     }
 
-    function symbol() external pure returns (string memory){
+    function symbol() external pure returns (string memory) {
         return "WOT";
     }
 
-    function decimals() external pure returns (uint8){
+    function decimals() external pure returns (uint8) {
         return 18;
     }
 
-    function mint(uint256 _amount) external{
-        if(msg.sender == owner){
+    function mint(uint256 _amount) external {
+        if (msg.sender == owner) {
             totalSupply += _amount;
         }
     }
 
-    function transfer(address to, uint256 amount) external returns (bool){
+    function transfer(address to, uint256 amount) external returns (bool) {
         return true;
     }
 
-    function balanceOf(address) external view returns (uint256){
+    function balanceOf(address) external view returns (uint256) {
         //just return total supply
         return totalSupply;
     }

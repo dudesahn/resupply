@@ -6,20 +6,20 @@ pragma solidity 0.8.28;
  * @notice Based on code from Drake Evans and Frax Finance's lending pair contract (https://github.com/FraxFinance/fraxlend), adapted for Resupply Finance
  */
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { ResupplyPairConstants } from "./pair/ResupplyPairConstants.sol";
-import { ResupplyPairCore } from "./pair/ResupplyPairCore.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { VaultAccount, VaultAccountingLibrary } from "../libraries/VaultAccount.sol";
-import { IRateCalculator } from "../interfaces/IRateCalculator.sol";
-import { ISwapper } from "../interfaces/ISwapper.sol";
-import { IFeeDeposit } from "../interfaces/IFeeDeposit.sol";
-import { IResupplyRegistry } from "../interfaces/IResupplyRegistry.sol";
-import { IConvexStaking } from "../interfaces/IConvexStaking.sol";
-import { EpochTracker } from "../dependencies/EpochTracker.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {ResupplyPairConstants} from "./pair/ResupplyPairConstants.sol";
+import {ResupplyPairCore} from "./pair/ResupplyPairCore.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {VaultAccount, VaultAccountingLibrary} from "../libraries/VaultAccount.sol";
+import {IRateCalculator} from "../interfaces/IRateCalculator.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
+import {IFeeDeposit} from "../interfaces/IFeeDeposit.sol";
+import {IResupplyRegistry} from "../interfaces/IResupplyRegistry.sol";
+import {IConvexStaking} from "../interfaces/IConvexStaking.sol";
+import {EpochTracker} from "../dependencies/EpochTracker.sol";
 
 contract ResupplyPair is ResupplyPairCore, EpochTracker {
     using VaultAccountingLibrary for VaultAccount;
@@ -33,7 +33,7 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     // Staking Info
     address public immutable convexBooster;
     uint256 public convexPid;
-    
+
     error FeesAlreadyDistributed();
     error IncorrectStakeBalance();
 
@@ -46,17 +46,17 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
         bytes memory _configData,
         bytes memory _immutables,
         bytes memory _customConfigData
-    ) ResupplyPairCore(_core, _configData, _immutables, _customConfigData) EpochTracker(_core) {
-
-        (, address _govToken, address _convexBooster, uint256 _convexpid) = abi.decode(
-            _customConfigData,
-            (string, address, address, uint256)
-        );
+    )
+        ResupplyPairCore(_core, _configData, _immutables, _customConfigData)
+        EpochTracker(_core)
+    {
+        (, address _govToken, address _convexBooster, uint256 _convexpid) = abi
+            .decode(_customConfigData, (string, address, address, uint256));
         //add gov token rewards
         _insertRewardToken(_govToken);
 
         //convex info
-        if(_convexBooster != address(0)){
+        if (_convexBooster != address(0)) {
             convexBooster = _convexBooster;
             convexPid = _convexpid;
             //approve
@@ -68,7 +68,6 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
             emit SetConvexPool(_convexpid);
         }
     }
-
 
     // ============================================================================================
     // Functions: Helpers
@@ -158,27 +157,21 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
             _amount = totalBorrow.toAmount(_shares, _roundUp);
         }
     }
+
     // ============================================================================================
     // Functions: Configuration
     // ============================================================================================
 
-
     /// @notice The ```SetOracleInfo``` event is emitted when the oracle info is set
     /// @param oldOracle The old oracle address
     /// @param newOracle The new oracle address
-    event SetOracleInfo(
-        address oldOracle,
-        address newOracle
-    );
+    event SetOracleInfo(address oldOracle, address newOracle);
 
     /// @notice The ```setOracleInfo``` function sets the oracle data
     /// @param _newOracle The new oracle address
-    function setOracle(address _newOracle) external onlyOwner{
+    function setOracle(address _newOracle) external onlyOwner {
         ExchangeRateInfo memory _exchangeRateInfo = exchangeRateInfo;
-        emit SetOracleInfo(
-            _exchangeRateInfo.oracle,
-            _newOracle
-        );
+        emit SetOracleInfo(_exchangeRateInfo.oracle, _newOracle);
         _exchangeRateInfo.oracle = _newOracle;
         exchangeRateInfo = _exchangeRateInfo;
     }
@@ -190,32 +183,36 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
 
     /// @notice The ```setMaxLTV``` function sets the max LTV
     /// @param _newMaxLTV The new max LTV
-    function setMaxLTV(uint256 _newMaxLTV) external onlyOwner{
+    function setMaxLTV(uint256 _newMaxLTV) external onlyOwner {
         if (_newMaxLTV > LTV_PRECISION) revert InvalidParameter();
         emit SetMaxLTV(maxLTV, _newMaxLTV);
         maxLTV = _newMaxLTV;
     }
 
- 
     /// @notice The ```SetRateCalculator``` event is emitted when the rate contract is set
     /// @param oldRateCalculator The old rate contract
     /// @param newRateCalculator The new rate contract
-    event SetRateCalculator(address oldRateCalculator, address newRateCalculator);
+    event SetRateCalculator(
+        address oldRateCalculator,
+        address newRateCalculator
+    );
 
     /// @notice The ```setRateCalculator``` function sets the rate contract address
     /// @param _newRateCalculator The new rate contract address
     /// @param _updateInterest Whether to update interest before setting new rate calculator
-    function setRateCalculator(address _newRateCalculator, bool _updateInterest) external onlyOwner{
+    function setRateCalculator(
+        address _newRateCalculator,
+        bool _updateInterest
+    ) external onlyOwner {
         //should add interest before changing rate calculator
         //however if there is an intrinsic problem with the current rate calculate, need to be able
         //to update without calling addInterest
-        if(_updateInterest){
+        if (_updateInterest) {
             _addInterest();
         }
         emit SetRateCalculator(address(rateCalculator), _newRateCalculator);
         rateCalculator = IRateCalculator(_newRateCalculator);
     }
-
 
     /// @notice The ```SetLiquidationFees``` event is emitted when the liquidation fees are set
     /// @param oldLiquidationFee The old clean liquidation fee
@@ -227,38 +224,25 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
 
     /// @notice The ```setLiquidationFees``` function sets the liquidation fees
     /// @param _newLiquidationFee The new clean liquidation fee
-    function setLiquidationFees(
-        uint256 _newLiquidationFee
-    ) external onlyOwner{
+    function setLiquidationFees(uint256 _newLiquidationFee) external onlyOwner {
         if (_newLiquidationFee > LIQ_PRECISION) revert InvalidParameter();
-        emit SetLiquidationFees(
-            liquidationFee,
-            _newLiquidationFee
-        );
+        emit SetLiquidationFees(liquidationFee, _newLiquidationFee);
         liquidationFee = _newLiquidationFee;
     }
 
     /// @notice The ```SetMintFees``` event is emitted when the liquidation fees are set
     /// @param oldMintFee The old mint fee
     /// @param newMintFee The new mint fee
-    event SetMintFees(
-        uint256 oldMintFee,
-        uint256 newMintFee
-    );
+    event SetMintFees(uint256 oldMintFee, uint256 newMintFee);
 
     /// @notice The ```setMintFees``` function sets the mint
     /// @param _newMintFee The new mint fee
-    function setMintFees(
-        uint256 _newMintFee
-    ) external onlyOwner{
-        emit SetMintFees(
-            mintFee,
-            _newMintFee
-        );
+    function setMintFees(uint256 _newMintFee) external onlyOwner {
+        emit SetMintFees(mintFee, _newMintFee);
         mintFee = _newMintFee;
     }
 
-    function setBorrowLimit(uint256 _limit) external onlyOwner{
+    function setBorrowLimit(uint256 _limit) external onlyOwner {
         _setBorrowLimit(_limit);
     }
 
@@ -267,7 +251,7 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     event SetBorrowLimit(uint256 limit);
 
     function _setBorrowLimit(uint256 _limit) internal {
-        if(_limit > type(uint128).max){
+        if (_limit > type(uint128).max) {
             revert InvalidParameter();
         }
         borrowLimit = _limit;
@@ -276,8 +260,8 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
 
     event SetMinimumRedemption(uint256 min);
 
-    function setMinimumRedemption(uint256 _min) external onlyOwner{
-        if(_min < 100 * PAIR_DECIMALS ){
+    function setMinimumRedemption(uint256 _min) external onlyOwner {
+        if (_min < 100 * PAIR_DECIMALS) {
             revert InvalidParameter();
         }
         minimumRedemption = _min;
@@ -286,14 +270,14 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
 
     event SetMinimumLeftover(uint256 min);
 
-    function setMinimumLeftoverDebt(uint256 _min) external onlyOwner{
+    function setMinimumLeftoverDebt(uint256 _min) external onlyOwner {
         minimumLeftoverDebt = _min;
         emit SetMinimumLeftover(_min);
     }
 
     event SetMinimumBorrowAmount(uint256 min);
 
-    function setMinimumBorrowAmount(uint256 _min) external onlyOwner{
+    function setMinimumBorrowAmount(uint256 _min) external onlyOwner {
         minimumBorrowAmount = _min;
         emit SetMinimumBorrowAmount(_min);
     }
@@ -303,8 +287,8 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     /// @notice Sets the redemption fee percentage for this specific pair
     /// @dev The fee is 1e18 precision (1e16 = 1%) and taken from redemptions and sent to the protocol.
     /// @param _fee The new redemption fee percentage. Must be less than or equal to 1e18 (100%)
-    function setProtocolRedemptionFee(uint256 _fee) external onlyOwner{
-        if(_fee > EXCHANGE_PRECISION) revert InvalidParameter();
+    function setProtocolRedemptionFee(uint256 _fee) external onlyOwner {
+        if (_fee > EXCHANGE_PRECISION) revert InvalidParameter();
 
         protocolRedemptionFee = _fee;
         emit SetProtocolRedemptionFee(_fee);
@@ -314,24 +298,34 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     /// @param recipient To whom the assets were sent
     /// @param interestFees the amount of interest based fees claimed
     /// @param otherFees the amount of other fees claimed(mint/redemption)
-    event WithdrawFees(address recipient, uint256 interestFees, uint256 otherFees);
+    event WithdrawFees(
+        address recipient,
+        uint256 interestFees,
+        uint256 otherFees
+    );
 
     /// @notice The ```withdrawFees``` function withdraws fees accumulated
     /// @return _fees the amount of interest based fees claimed
     /// @return _otherFees the amount of other fees claimed(mint/redemption)
-    function withdrawFees() external nonReentrant returns (uint256 _fees, uint256 _otherFees) {
-
+    function withdrawFees()
+        external
+        nonReentrant
+        returns (uint256 _fees, uint256 _otherFees)
+    {
         // Accrue interest if necessary
         _addInterest();
 
         //get deposit contract
         address feeDeposit = IResupplyRegistry(registry).feeDeposit();
-        uint256 lastDistributedEpoch = IFeeDeposit(feeDeposit).lastDistributedEpoch();
+        uint256 lastDistributedEpoch = IFeeDeposit(feeDeposit)
+            .lastDistributedEpoch();
         uint256 currentEpoch = getEpoch();
 
         //current epoch must be greater than last claimed epoch
         //current epoch must be equal to the FeeDeposit prev distributed epoch (FeeDeposit must distribute first)
-        if(currentEpoch <= lastFeeEpoch || currentEpoch != lastDistributedEpoch){
+        if (
+            currentEpoch <= lastFeeEpoch || currentEpoch != lastDistributedEpoch
+        ) {
             revert FeesAlreadyDistributed();
         }
 
@@ -343,9 +337,9 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
         claimableFees = 0;
         claimableOtherFees = 0;
         //mint new stables to the receiver
-        IResupplyRegistry(registry).mint(feeDeposit,_fees+_otherFees);
+        IResupplyRegistry(registry).mint(feeDeposit, _fees + _otherFees);
         //inform deposit contract of this pair's contribution
-        IFeeDeposit(feeDeposit).incrementPairRevenue(_fees,_otherFees);
+        IFeeDeposit(feeDeposit).incrementPairRevenue(_fees, _otherFees);
         emit WithdrawFees(feeDeposit, _fees, _otherFees);
     }
 
@@ -358,11 +352,11 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     /// @dev
     /// @param _swapper The swapper address
     /// @param _approval The approval
-    function setSwapper(address _swapper, bool _approval) external{
-        if(msg.sender == owner() || msg.sender == registry){
+    function setSwapper(address _swapper, bool _approval) external {
+        if (msg.sender == owner() || msg.sender == registry) {
             swappers[_swapper] = _approval;
             emit SetSwapper(_swapper, _approval);
-        }else{
+        } else {
             revert OnlyProtocolOrOwner();
         }
     }
@@ -374,23 +368,29 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     /// @notice The ```setConvexPool``` function is called update the underlying convex pool
     /// @dev
     /// @param pid the convex pool id
-    function setConvexPool(uint256 pid) external onlyOwner{
+    function setConvexPool(uint256 pid) external onlyOwner {
         _updateConvexPool(pid);
         emit SetConvexPool(pid);
     }
 
-    function _updateConvexPool(uint256 _pid) internal{
+    function _updateConvexPool(uint256 _pid) internal {
         uint256 currentPid = convexPid;
-        if(currentPid != _pid){
+        if (currentPid != _pid) {
             //get previous staking
-            (,,,address _rewards,,) = IConvexStaking(convexBooster).poolInfo(currentPid);
+            (, , , address _rewards, , ) = IConvexStaking(convexBooster)
+                .poolInfo(currentPid);
             //get balance
-            uint256 stakedBalance = IConvexStaking(_rewards).balanceOf(address(this));
-            
-            if(stakedBalance > 0){
+            uint256 stakedBalance = IConvexStaking(_rewards).balanceOf(
+                address(this)
+            );
+
+            if (stakedBalance > 0) {
                 //withdraw
-                IConvexStaking(_rewards).withdrawAndUnwrap(stakedBalance,false);
-                if(collateral.balanceOf(address(this)) < stakedBalance){
+                IConvexStaking(_rewards).withdrawAndUnwrap(
+                    stakedBalance,
+                    false
+                );
+                if (collateral.balanceOf(address(this)) < stakedBalance) {
                     revert IncorrectStakeBalance();
                 }
             }
@@ -403,30 +403,39 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
         }
     }
 
-    function _stakeUnderlying(uint256 _amount) internal override{
+    function _stakeUnderlying(uint256 _amount) internal override {
         uint256 currentPid = convexPid;
-        if(currentPid != 0){
+        if (currentPid != 0) {
             IConvexStaking(convexBooster).deposit(currentPid, _amount, true);
         }
     }
 
-    function _unstakeUnderlying(uint256 _amount) internal override{
+    function _unstakeUnderlying(uint256 _amount) internal override {
         uint256 currentPid = convexPid;
-        if(currentPid != 0){
-            (,,,address _rewards,,) = IConvexStaking(convexBooster).poolInfo(currentPid);
+        if (currentPid != 0) {
+            (, , , address _rewards, , ) = IConvexStaking(convexBooster)
+                .poolInfo(currentPid);
             IConvexStaking(_rewards).withdrawAndUnwrap(_amount, false);
         }
     }
 
-    function totalCollateral() public view override returns(uint256 _totalCollateralBalance){
+    function totalCollateral()
+        public
+        view
+        override
+        returns (uint256 _totalCollateralBalance)
+    {
         uint256 currentPid = convexPid;
-        if(currentPid != 0){
+        if (currentPid != 0) {
             //get staking
-            (,,,address _rewards,,) = IConvexStaking(convexBooster).poolInfo(currentPid);
+            (, , , address _rewards, , ) = IConvexStaking(convexBooster)
+                .poolInfo(currentPid);
             //get balance
-            _totalCollateralBalance = IConvexStaking(_rewards).balanceOf(address(this));
-        }else{
-            _totalCollateralBalance = collateral.balanceOf(address(this));   
+            _totalCollateralBalance = IConvexStaking(_rewards).balanceOf(
+                address(this)
+            );
+        } else {
+            _totalCollateralBalance = collateral.balanceOf(address(this));
         }
     }
 
@@ -435,8 +444,9 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     // ============================================================================================
 
     uint256 previousBorrowLimit;
+
     /// @notice The ```pause``` function is called to pause all contract functionality
-    function pause() external onlyOwner{
+    function pause() external onlyOwner {
         if (borrowLimit > 0) {
             previousBorrowLimit = borrowLimit;
             _setBorrowLimit(0);
@@ -444,7 +454,7 @@ contract ResupplyPair is ResupplyPairCore, EpochTracker {
     }
 
     /// @notice The ```unpause``` function is called to unpause all contract functionality
-    function unpause() external onlyOwner{
+    function unpause() external onlyOwner {
         if (borrowLimit == 0) _setBorrowLimit(previousBorrowLimit);
     }
 }

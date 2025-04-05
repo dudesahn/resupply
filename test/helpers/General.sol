@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "src/protocol/InterestRateCalculator.sol";
 // import "src/interfaces/IDualOracle.sol";
 // import "src/interfaces/IVariableInterestRateV2.sol";
-import { OracleHelper } from "frax-std/oracles/OracleHelper.sol";
+import {OracleHelper} from "frax-std/oracles/OracleHelper.sol";
 
 // library RateHelper {
 //     using Strings for *;
@@ -98,12 +98,28 @@ contract TestHelper is VmHelper {
     using Strings for uint256;
 
     // helper to faucet funds to ERC20 contracts
-    function faucetFunds(IERC20 _contract, uint256 _amount, address _user) public {
-        stdstore.target(address(_contract)).sig(_contract.balanceOf.selector).with_key(_user).checked_write(_amount);
+    function faucetFunds(
+        IERC20 _contract,
+        uint256 _amount,
+        address _user
+    ) public {
+        stdstore
+            .target(address(_contract))
+            .sig(_contract.balanceOf.selector)
+            .with_key(_user)
+            .checked_write(_amount);
     }
 
-    function faucetFundsCurveLP(IStableSwapBalances _contract, uint256 _amount, address _user) public {
-        stdstore.target(address(_contract)).sig(_contract.balances.selector).with_key(_user).checked_write(_amount);
+    function faucetFundsCurveLP(
+        IStableSwapBalances _contract,
+        uint256 _amount,
+        address _user
+    ) public {
+        stdstore
+            .target(address(_contract))
+            .sig(_contract.balances.selector)
+            .with_key(_user)
+            .checked_write(_amount);
     }
 }
 

@@ -3,14 +3,13 @@ pragma solidity ^0.8.22;
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
 import "src/Constants.sol" as Constants;
-import { Setup } from "../Setup.sol";
-import { GovTokenHarness } from "../mocks/GovTokenHarness.sol";
+import {Setup} from "../Setup.sol";
+import {GovTokenHarness} from "../mocks/GovTokenHarness.sol";
 
 contract TreasuryTest is Setup {
-
     function setUp() public override {
         super.setUp();
-        
+
         // clear balance of user 1
         uint256 balance = govToken.balanceOf(user1);
         vm.prank(user1);
@@ -47,7 +46,14 @@ contract TreasuryTest is Setup {
     function test_GlobalSupplyNotReducedByBurns() public {
         // this harness implements a public `burn` function, to mimic the OFT
         // we want to ensure that, unlike `totalSupply`, the `globalSupply` is not reduced by burns
-        GovTokenHarness token = new GovTokenHarness(address(core), address(user1), 1_000_000e18, Constants.Mainnet.LAYERZERO_ENDPOINTV2, "Test", "TEST");
+        GovTokenHarness token = new GovTokenHarness(
+            address(core),
+            address(user1),
+            1_000_000e18,
+            Constants.Mainnet.LAYERZERO_ENDPOINTV2,
+            "Test",
+            "TEST"
+        );
         uint256 amount = 1_000_000e18;
         deal(address(token), address(this), amount);
         uint256 startSupply = token.totalSupply();
@@ -62,13 +68,13 @@ contract TreasuryTest is Setup {
         // this harness implements a public `burn` function, to mimic the OFT
         // we want to ensure that, unlike `totalSupply`, the `globalSupply` is not reduced by burns
         uint256 amount = 1_000_000e18;
-        
+
         vm.prank(address(core));
         govToken.setMinter(address(this));
-        
+
         uint256 startGlobalSupply = govToken.globalSupply();
         govToken.mint(address(this), amount);
-        
+
         assertEq(govToken.globalSupply(), startGlobalSupply + amount);
         assertEq(govToken.globalSupply(), govToken.totalSupply());
         assertGt(govToken.globalSupply(), startGlobalSupply);

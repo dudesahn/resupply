@@ -1,8 +1,8 @@
 pragma solidity ^0.8.22;
 
-import { Setup } from "../Setup.sol";
-import { MockOperator } from "../mocks/MockOperator.sol";
-import { IAuthHook } from "src/interfaces/IAuthHook.sol";
+import {Setup} from "../Setup.sol";
+import {MockOperator} from "../mocks/MockOperator.sol";
+import {IAuthHook} from "src/interfaces/IAuthHook.sol";
 
 contract CoreTest is Setup {
     MockOperator operator;
@@ -15,27 +15,36 @@ contract CoreTest is Setup {
     function test_execute() public {
         setupOperator();
         operator.setExpectedValue(1);
-    
-        vm.prank(address(operator));
-        core.execute(address(operator), abi.encodeWithSelector(bytes4(keccak256("setValue(uint256)")), 1));
 
         vm.prank(address(operator));
-        vm.expectRevert('Auth PostHook Failed');
-        core.execute(address(operator), abi.encodeWithSelector(bytes4(keccak256("setValue(uint256)")), 2));
+        core.execute(
+            address(operator),
+            abi.encodeWithSelector(bytes4(keccak256("setValue(uint256)")), 1)
+        );
+
+        vm.prank(address(operator));
+        vm.expectRevert("Auth PostHook Failed");
+        core.execute(
+            address(operator),
+            abi.encodeWithSelector(bytes4(keccak256("setValue(uint256)")), 2)
+        );
     }
 
     function test_execute_revert() public {
-        vm.expectRevert('!authorized');
-        core.execute(address(operator), abi.encodeWithSelector(bytes4(keccak256("setValue(uint256)")), 1));
+        vm.expectRevert("!authorized");
+        core.execute(
+            address(operator),
+            abi.encodeWithSelector(bytes4(keccak256("setValue(uint256)")), 1)
+        );
     }
 
     function setupOperator() internal {
         vm.prank(address(core));
         core.setOperatorPermissions(
-            address(operator), 
-            address(operator), 
-            bytes4(keccak256("setValue(uint256)")), 
-            true, 
+            address(operator),
+            address(operator),
+            bytes4(keccak256("setValue(uint256)")),
+            true,
             IAuthHook(address(operator))
         );
     }

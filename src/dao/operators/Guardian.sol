@@ -1,10 +1,10 @@
-import { ICore } from "src/interfaces/ICore.sol";
-import { IResupplyPair } from "src/interfaces/IResupplyPair.sol";
-import { IResupplyRegistry } from "src/interfaces/IResupplyRegistry.sol";
-import { IVoter } from "src/interfaces/IVoter.sol";
-import { CoreOwnable } from "src/dependencies/CoreOwnable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ICore} from "src/interfaces/ICore.sol";
+import {IResupplyPair} from "src/interfaces/IResupplyPair.sol";
+import {IResupplyRegistry} from "src/interfaces/IResupplyRegistry.sol";
+import {IVoter} from "src/interfaces/IVoter.sol";
+import {CoreOwnable} from "src/dependencies/CoreOwnable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Guardian is CoreOwnable {
     using SafeERC20 for IERC20;
@@ -43,25 +43,36 @@ contract Guardian is CoreOwnable {
     function cancelProposal(uint256 proposalId) external onlyGuardian {
         address voter = registry.getAddress("VOTER");
         core.execute(
-            voter, 
+            voter,
             abi.encodeWithSelector(IVoter.cancelProposal.selector, proposalId)
         );
     }
 
-    function updateProposalDescription(uint256 proposalId, string calldata newDescription) external onlyGuardian {
+    function updateProposalDescription(
+        uint256 proposalId,
+        string calldata newDescription
+    ) external onlyGuardian {
         address voter = registry.getAddress("VOTER");
         core.execute(
             voter,
-            abi.encodeWithSelector(IVoter.updateProposalDescription.selector, proposalId, newDescription)
+            abi.encodeWithSelector(
+                IVoter.updateProposalDescription.selector,
+                proposalId,
+                newDescription
+            )
         );
     }
-    
+
     /**
         @notice Reverts the voter to the guardian address
         @dev This function serves as a safety measure until the DAO is fully operational and revokes its permissions.
      */
     function revertVoter() external onlyGuardian {
-        (bool authorized,) = core.operatorPermissions(address(this), address(core), ICore.setVoter.selector);
+        (bool authorized, ) = core.operatorPermissions(
+            address(this),
+            address(core),
+            ICore.setVoter.selector
+        );
         require(authorized, "Permission to revert voter not granted");
         core.execute(
             address(core),
@@ -69,8 +80,10 @@ contract Guardian is CoreOwnable {
         );
     }
 
-
-    function setRegistryAddress(string memory _key, address _address) external onlyGuardian {
+    function setRegistryAddress(
+        string memory _key,
+        address _address
+    ) external onlyGuardian {
         core.execute(
             address(registry),
             abi.encodeWithSelector(
@@ -87,7 +100,7 @@ contract Guardian is CoreOwnable {
 
     function _pausePair(address pair) internal {
         core.execute(
-            pair, 
+            pair,
             abi.encodeWithSelector(IResupplyPair.pause.selector)
         );
         emit PairPaused(pair);
@@ -101,19 +114,49 @@ contract Guardian is CoreOwnable {
         @return revertVoter Whether the guardian can revert the voter
         @return setRegistryAddress Whether the guardian can set registry addresses
      */
-    function viewPermissions() external view returns (bool, bool, bool, bool, bool) {
+    function viewPermissions()
+        external
+        view
+        returns (bool, bool, bool, bool, bool)
+    {
         address voter = registry.getAddress("VOTER");
         bool[] memory permissions = new bool[](5);
-        (bool authorized,) = core.operatorPermissions(address(this), address(0), IResupplyPair.pause.selector);
+        (bool authorized, ) = core.operatorPermissions(
+            address(this),
+            address(0),
+            IResupplyPair.pause.selector
+        );
         permissions[0] = authorized;
-        (authorized,) = core.operatorPermissions(address(this), address(voter), IVoter.cancelProposal.selector);
+        (authorized, ) = core.operatorPermissions(
+            address(this),
+            address(voter),
+            IVoter.cancelProposal.selector
+        );
         permissions[1] = authorized;
-        (authorized,) = core.operatorPermissions(address(this), address(voter), IVoter.updateProposalDescription.selector);
+        (authorized, ) = core.operatorPermissions(
+            address(this),
+            address(voter),
+            IVoter.updateProposalDescription.selector
+        );
         permissions[2] = authorized;
-        (authorized,) = core.operatorPermissions(address(this), address(core), ICore.setVoter.selector);
+        (authorized, ) = core.operatorPermissions(
+            address(this),
+            address(core),
+            ICore.setVoter.selector
+        );
         permissions[3] = authorized;
-        (authorized,) = core.operatorPermissions(address(this), address(registry), IResupplyRegistry.setAddress.selector);
+        (authorized, ) = core.operatorPermissions(
+            address(this),
+            address(registry),
+            IResupplyRegistry.setAddress.selector
+        );
         permissions[4] = authorized;
-        return (permissions[0], permissions[1], permissions[2], permissions[3], permissions[4]);
+        return (
+            permissions[0],
+            permissions[1],
+            permissions[2],
+            permissions[3],
+            permissions[4]
+        );
     }
 }

@@ -4,9 +4,21 @@ pragma solidity 0.8.28;
 // NOTE: This is a generated file. Do not edit directly.
 
 interface IConvexStakingWrapperFraxlend {
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-    event Deposited(address indexed _user, address indexed _account, uint256 _amount, bool _wrapped);
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
+    event Deposited(
+        address indexed _user,
+        address indexed _account,
+        uint256 _amount,
+        bool _wrapped
+    );
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Withdrawn(address indexed _user, uint256 _amount, bool _unwrapped);
 
@@ -19,7 +31,10 @@ interface IConvexStakingWrapperFraxlend {
 
     function addTokenReward(address _token) external;
 
-    function allowance(address owner, address spender) external view returns (uint256);
+    function allowance(
+        address owner,
+        address spender
+    ) external view returns (uint256);
 
     function approve(address spender, uint256 amount) external returns (bool);
 
@@ -43,21 +58,34 @@ interface IConvexStakingWrapperFraxlend {
 
     function decimals() external view returns (uint8);
 
-    function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);
+    function decreaseAllowance(
+        address spender,
+        uint256 subtractedValue
+    ) external returns (bool);
 
     function deposit(uint256 _amount, address _to) external;
 
-    function earned(address _account) external returns (IConvexStakingWrapperFraxlend.EarnedData[] memory claimable);
+    function earned(
+        address _account
+    )
+        external
+        returns (IConvexStakingWrapperFraxlend.EarnedData[] memory claimable);
 
     function earnedView(
         address _account
-    ) external view returns (IConvexStakingWrapperFraxlend.EarnedData[] memory claimable);
+    )
+        external
+        view
+        returns (IConvexStakingWrapperFraxlend.EarnedData[] memory claimable);
 
     function getReward(address _account, address _forwardTo) external;
 
     function getReward(address _account) external;
 
-    function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
+    function increaseAllowance(
+        address spender,
+        uint256 addedValue
+    ) external returns (bool);
 
     function initialize(uint256 _poolId) external;
 
@@ -82,7 +110,12 @@ interface IConvexStakingWrapperFraxlend {
     )
         external
         view
-        returns (address reward_token, address reward_pool, uint128 reward_integral, uint128 reward_remaining);
+        returns (
+            address reward_token,
+            address reward_pool,
+            uint128 reward_integral,
+            uint128 reward_remaining
+        );
 
     function setApprovals() external;
 
@@ -100,9 +133,16 @@ interface IConvexStakingWrapperFraxlend {
 
     function totalSupply() external view returns (uint256);
 
-    function transfer(address recipient, uint256 amount) external returns (bool);
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
     function transferOwnership(address newOwner) external;
 

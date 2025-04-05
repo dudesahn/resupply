@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
-import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 interface ICurvePoolEmaPriceOracleWithMinMax is IERC165 {
     event SetMaximumCurvePoolEma(uint256 oldMaximum, uint256 newMaximum);
@@ -9,9 +9,15 @@ interface ICurvePoolEmaPriceOracleWithMinMax is IERC165 {
 
     function CURVE_POOL_EMA_PRICE_ORACLE() external view returns (address);
 
-    function CURVE_POOL_EMA_PRICE_ORACLE_PRECISION() external view returns (uint256);
+    function CURVE_POOL_EMA_PRICE_ORACLE_PRECISION()
+        external
+        view
+        returns (uint256);
 
-    function getCurvePoolToken1EmaPrice() external view returns (uint256 _emaPrice);
+    function getCurvePoolToken1EmaPrice()
+        external
+        view
+        returns (uint256 _emaPrice);
 
     function maximumCurvePoolEma() external view returns (uint256);
 

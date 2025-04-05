@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { console2 } from "forge-std/console2.sol";
-import { ResupplyRegistry } from "src/protocol/ResupplyRegistry.sol";
-import { Setup } from "test/Setup.sol";
+import {console2} from "forge-std/console2.sol";
+import {ResupplyRegistry} from "src/protocol/ResupplyRegistry.sol";
+import {Setup} from "test/Setup.sol";
 
 contract RegistryTest is Setup {
-
     function setUp() public override {
         super.setUp();
     }
@@ -22,7 +21,7 @@ contract RegistryTest is Setup {
         assertEq(registry.hashToKey(keyHash), key);
         console2.log("key", key);
         console2.logBytes32(keyHash);
-        console2.log('Key', registry.hashToKey(keyHash));
+        console2.log("Key", registry.hashToKey(keyHash));
         vm.stopPrank();
     }
 
@@ -30,7 +29,10 @@ contract RegistryTest is Setup {
         vm.startPrank(address(core));
         registry.setAddress("test", address(this));
         vm.expectRevert(
-            abi.encodeWithSelector(ResupplyRegistry.ProtectedKey.selector, "STAKER")
+            abi.encodeWithSelector(
+                ResupplyRegistry.ProtectedKey.selector,
+                "STAKER"
+            )
         );
         registry.setAddress("STAKER", address(staker));
         registry.setAddress("STABLECOIN2", address(stablecoin));
@@ -43,7 +45,7 @@ contract RegistryTest is Setup {
         }
         vm.stopPrank();
     }
-     
+
     function test_AccessControl() public {
         vm.expectRevert("!core");
         registry.setAddress("test", address(this));
@@ -61,7 +63,10 @@ contract RegistryTest is Setup {
         require(protectedKeys.length > 0, "No protected keys found");
         for (uint i = 0; i < protectedKeys.length; i++) {
             vm.expectRevert(
-                abi.encodeWithSelector(ResupplyRegistry.ProtectedKey.selector, protectedKeys[i])
+                abi.encodeWithSelector(
+                    ResupplyRegistry.ProtectedKey.selector,
+                    protectedKeys[i]
+                )
             );
             registry.setAddress(protectedKeys[i], address(this));
         }

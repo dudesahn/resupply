@@ -6,31 +6,38 @@ pragma solidity 0.8.28;
  * @notice Based on code from Drake Evans and Frax Finance's lending pair core contract (https://github.com/FraxFinance/fraxlend), adapted for Resupply Finance
  */
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { ResupplyPairConstants } from "./ResupplyPairConstants.sol";
-import { VaultAccount, VaultAccountingLibrary } from "../../libraries/VaultAccount.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IOracle } from "../../interfaces/IOracle.sol";
-import { IRateCalculator } from "../../interfaces/IRateCalculator.sol";
-import { ISwapper } from "../../interfaces/ISwapper.sol";
-import { IResupplyRegistry } from "../../interfaces/IResupplyRegistry.sol";
-import { ILiquidationHandler } from "../../interfaces/ILiquidationHandler.sol";
-import { RewardDistributorMultiEpoch } from "../RewardDistributorMultiEpoch.sol";
-import { WriteOffToken } from "../WriteOffToken.sol";
-import { IERC4626 } from "../../interfaces/IERC4626.sol";
-import { CoreOwnable } from "../../dependencies/CoreOwnable.sol";
-import { IMintable } from "../../interfaces/IMintable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {ResupplyPairConstants} from "./ResupplyPairConstants.sol";
+import {VaultAccount, VaultAccountingLibrary} from "../../libraries/VaultAccount.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IOracle} from "../../interfaces/IOracle.sol";
+import {IRateCalculator} from "../../interfaces/IRateCalculator.sol";
+import {ISwapper} from "../../interfaces/ISwapper.sol";
+import {IResupplyRegistry} from "../../interfaces/IResupplyRegistry.sol";
+import {ILiquidationHandler} from "../../interfaces/ILiquidationHandler.sol";
+import {RewardDistributorMultiEpoch} from "../RewardDistributorMultiEpoch.sol";
+import {WriteOffToken} from "../WriteOffToken.sol";
+import {IERC4626} from "../../interfaces/IERC4626.sol";
+import {CoreOwnable} from "../../dependencies/CoreOwnable.sol";
+import {IMintable} from "../../interfaces/IMintable.sol";
 
-
-abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, RewardDistributorMultiEpoch {
+abstract contract ResupplyPairCore is
+    CoreOwnable,
+    ResupplyPairConstants,
+    RewardDistributorMultiEpoch
+{
     using VaultAccountingLibrary for VaultAccount;
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
     //forked fraxlend at version 3,0,0
-    function version() external pure returns (uint256 _major, uint256 _minor, uint256 _patch) {
+    function version()
+        external
+        pure
+        returns (uint256 _major, uint256 _minor, uint256 _patch)
+    {
         _major = 3;
         _minor = 0;
         _patch = 0;
@@ -64,7 +71,6 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     uint256 public minimumRedemption = 100 * PAIR_DECIMALS; //minimum amount of debt to redeem
     uint256 public minimumLeftoverDebt = 10000 * PAIR_DECIMALS; //minimum amount of assets left over via redemptions
     uint256 public minimumBorrowAmount = 1000 * PAIR_DECIMALS; //minimum amount of assets to borrow
-    
 
     // Interest Rate Calculator Contract
     IRateCalculator public rateCalculator; // For complex rate calculations
@@ -74,7 +80,7 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
 
     // Metadata
     string public name;
-    
+
     // ============================================================================================
     // Storage
     // ============================================================================================
@@ -102,15 +108,13 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     VaultAccount public totalBorrow; // amount = total borrow amount with interest accrued, shares = total shares outstanding
     uint256 public claimableFees; //amount of interest gained that is claimable as fees
     uint256 public claimableOtherFees; //amount of redemption/mint fees claimable by protocol
-    WriteOffToken immutable public redemptionWriteOff; //token to keep track of redemption write offs
+    WriteOffToken public immutable redemptionWriteOff; //token to keep track of redemption write offs
 
     // User Level Accounting
     /// @notice Stores the balance of collateral for each user
     mapping(address => uint256) internal _userCollateralBalance; // amount of collateral each user is backed
     /// @notice Stores the balance of borrow shares for each user
     mapping(address => uint256) internal _userBorrowShares; // represents the shares held by individuals
-
-    
 
     // ============================================================================================
     // Constructor
@@ -126,11 +130,8 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         bytes memory _configData,
         bytes memory _immutables,
         bytes memory _customConfigData
-    ) CoreOwnable(_core){
-        (address _registry) = abi.decode(
-            _immutables,
-            (address)
-        );
+    ) CoreOwnable(_core) {
+        address _registry = abi.decode(_immutables, (address));
         registry = _registry;
         debtToken = IERC20(IResupplyRegistry(registry).token());
         {
@@ -145,21 +146,32 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
                 uint256 _protocolRedemptionFee
             ) = abi.decode(
                     _configData,
-                    (address, address, address, uint256, uint256, uint256, uint256, uint256)
+                    (
+                        address,
+                        address,
+                        address,
+                        uint256,
+                        uint256,
+                        uint256,
+                        uint256,
+                        uint256
+                    )
                 );
 
             // Pair Settings
             collateral = IERC20(_collateral);
-            if(IERC20Metadata(_collateral).decimals() != 18){
+            if (IERC20Metadata(_collateral).decimals() != 18) {
                 revert InvalidParameter();
             }
             underlying = IERC20(IERC4626(_collateral).asset());
-            if(IERC20Metadata(address(underlying)).decimals() != 18){
+            if (IERC20Metadata(address(underlying)).decimals() != 18) {
                 revert InvalidParameter();
             }
             // approve so this contract can deposit
             underlying.forceApprove(_collateral, type(uint256).max);
-            currentRateInfo.lastShares = uint128(IERC4626(_collateral).convertToShares(PAIR_DECIMALS));
+            currentRateInfo.lastShares = uint128(
+                IERC4626(_collateral).convertToShares(PAIR_DECIMALS)
+            );
             exchangeRateInfo.oracle = _oracle;
             rateCalculator = IRateCalculator(_rateCalculator);
             borrowLimit = _initialBorrowLimit;
@@ -175,12 +187,12 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
 
         //starting reward types
         redemptionWriteOff = new WriteOffToken(address(this));
-        _insertRewardToken(address(redemptionWriteOff));//add redemption token as a reward
+        _insertRewardToken(address(redemptionWriteOff)); //add redemption token as a reward
         //set the redemption token as non claimable via getReward
         rewards[0].is_non_claimable = true;
 
         {
-            (string memory _name,,,) = abi.decode(
+            (string memory _name, , , ) = abi.decode(
                 _customConfigData,
                 (string, address, address, uint256)
             );
@@ -199,25 +211,30 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     // Helpers
     // ============================================================================================
 
+    //get total collateral, either parked here or staked
+    function totalCollateral()
+        public
+        view
+        virtual
+        returns (uint256 _totalCollateralBalance);
 
-    //get total collateral, either parked here or staked 
-    function totalCollateral() public view virtual returns(uint256 _totalCollateralBalance);
-
-    function userBorrowShares(address _account) public view returns(uint256 borrowShares){
+    function userBorrowShares(
+        address _account
+    ) public view returns (uint256 borrowShares) {
         borrowShares = _userBorrowShares[_account];
 
         uint256 globalEpoch = currentRewardEpoch;
         uint256 userEpoch = userRewardEpoch[_account];
 
-        if(userEpoch < globalEpoch){
+        if (userEpoch < globalEpoch) {
             //need to calculate shares while keeping this as a view function
-            for(;;){
+            for (;;) {
                 //reduce shares by refactoring amount
                 borrowShares /= SHARE_REFACTOR_PRECISION;
                 unchecked {
                     userEpoch += 1;
                 }
-                if(userEpoch == globalEpoch){
+                if (userEpoch == globalEpoch) {
                     break;
                 }
             }
@@ -225,7 +242,9 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     }
 
     //get _userCollateralBalance minus redemption tokens
-    function userCollateralBalance(address _account) public nonReentrant returns(uint256 _collateralAmount){
+    function userCollateralBalance(
+        address _account
+    ) public nonReentrant returns (uint256 _collateralAmount) {
         _syncUserRedemptions(_account);
 
         _collateralAmount = _userCollateralBalance[_account];
@@ -233,58 +252,74 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         //since there are some very small dust during distribution there could be a few wei
         //in user collateral that is over total collateral. clamp to total
         uint256 total = totalCollateral();
-        _collateralAmount = _collateralAmount > total ? total : _collateralAmount;
+        _collateralAmount = _collateralAmount > total
+            ? total
+            : _collateralAmount;
     }
 
     /// @notice The ```totalDebtAvailable``` function returns the total balance of debt tokens in the contract
     /// @return The balance of debt tokens held by contract
     function totalDebtAvailable() external view returns (uint256) {
-        (,,, VaultAccount memory _totalBorrow) = previewAddInterest();
-        
+        (, , , VaultAccount memory _totalBorrow) = previewAddInterest();
+
         return _totalDebtAvailable(_totalBorrow);
     }
 
     /// @notice The ```_totalDebtAvailable``` function returns the total amount of debt that can be issued on this pair
     /// @param _totalBorrow Total borrowed amount, inclusive of interest
     /// @return The amount of debt that can be issued
-    function _totalDebtAvailable(VaultAccount memory _totalBorrow) internal view returns (uint256) {
+    function _totalDebtAvailable(
+        VaultAccount memory _totalBorrow
+    ) internal view returns (uint256) {
         uint256 _borrowLimit = borrowLimit;
-        uint256 borrowable = _borrowLimit > _totalBorrow.amount ? _borrowLimit - _totalBorrow.amount : 0;
+        uint256 borrowable = _borrowLimit > _totalBorrow.amount
+            ? _borrowLimit - _totalBorrow.amount
+            : 0;
 
-        return borrowable > type(uint128).max ? type(uint128).max : borrowable; 
+        return borrowable > type(uint128).max ? type(uint128).max : borrowable;
     }
 
     function currentUtilization() external view returns (uint256) {
         uint256 _borrowLimit = borrowLimit;
-        if(_borrowLimit == 0){
+        if (_borrowLimit == 0) {
             return PAIR_DECIMALS;
         }
-        (,,, VaultAccount memory _totalBorrow) = previewAddInterest();
-        return _totalBorrow.amount * PAIR_DECIMALS / _borrowLimit;
+        (, , , VaultAccount memory _totalBorrow) = previewAddInterest();
+        return (_totalBorrow.amount * PAIR_DECIMALS) / _borrowLimit;
     }
 
     /// @notice The ```_isSolvent``` function determines if a given borrower is solvent given an exchange rate
     /// @param _borrower The borrower address to check
     /// @param _exchangeRate The exchange rate, i.e. the amount of collateral to buy 1e18 asset
     /// @return Whether borrower is solvent
-    function _isSolvent(address _borrower, uint256 _exchangeRate) internal view returns (bool) {
+    function _isSolvent(
+        address _borrower,
+        uint256 _exchangeRate
+    ) internal view returns (bool) {
         uint256 _maxLTV = maxLTV;
         if (_maxLTV == 0) return true;
         //must look at borrow shares of current epoch so user helper function
         //user borrow shares should be synced before _isSolvent is called
-        uint256 _borrowerAmount = totalBorrow.toAmount(_userBorrowShares[_borrower], true);
+        uint256 _borrowerAmount = totalBorrow.toAmount(
+            _userBorrowShares[_borrower],
+            true
+        );
         if (_borrowerAmount == 0) return true;
-        
+
         //anything that calls _isSolvent will call _syncUserRedemptions beforehand
         uint256 _collateralAmount = _userCollateralBalance[_borrower];
         if (_collateralAmount == 0) return false;
 
-        uint256 _ltv = ((_borrowerAmount * _exchangeRate * LTV_PRECISION) / EXCHANGE_PRECISION) / _collateralAmount;
+        uint256 _ltv = ((_borrowerAmount * _exchangeRate * LTV_PRECISION) /
+            EXCHANGE_PRECISION) / _collateralAmount;
         return _ltv <= _maxLTV;
     }
 
-    function _isSolventSync(address _borrower, uint256 _exchangeRate) internal returns (bool){
-         //checkpoint rewards and sync _userCollateralBalance
+    function _isSolventSync(
+        address _borrower,
+        uint256 _exchangeRate
+    ) internal returns (bool) {
+        //checkpoint rewards and sync _userCollateralBalance
         _syncUserRedemptions(_borrower);
         return _isSolvent(_borrower, _exchangeRate);
     }
@@ -314,46 +349,61 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     // Reward Implementation
     // ============================================================================================
 
-    function _isRewardManager() internal view override returns(bool){
-        return msg.sender == address(core) || msg.sender == IResupplyRegistry(registry).rewardHandler();
+    function _isRewardManager() internal view override returns (bool) {
+        return
+            msg.sender == address(core) ||
+            msg.sender == IResupplyRegistry(registry).rewardHandler();
     }
 
-    function _fetchIncentives() internal override{
+    function _fetchIncentives() internal override {
         IResupplyRegistry(registry).claimRewards(address(this));
     }
 
-    function _totalRewardShares() internal view override returns(uint256){
+    function _totalRewardShares() internal view override returns (uint256) {
         return totalBorrow.shares;
     }
 
-    function _userRewardShares(address _account) internal view override returns(uint256){
+    function _userRewardShares(
+        address _account
+    ) internal view override returns (uint256) {
         return _userBorrowShares[_account];
     }
 
-    function _increaseUserRewardEpoch(address _account, uint256 _currentUserEpoch) internal override{
+    function _increaseUserRewardEpoch(
+        address _account,
+        uint256 _currentUserEpoch
+    ) internal override {
         //convert shares to next epoch shares
         //share refactoring will never be 0
-        _userBorrowShares[_account] = _userBorrowShares[_account] / SHARE_REFACTOR_PRECISION;
+        _userBorrowShares[_account] =
+            _userBorrowShares[_account] /
+            SHARE_REFACTOR_PRECISION;
         //update user reward epoch
         userRewardEpoch[_account] = _currentUserEpoch + 1;
     }
 
-    function earned(address _account) public override returns(EarnedData[] memory claimable){
+    function earned(
+        address _account
+    ) public override returns (EarnedData[] memory claimable) {
         EarnedData[] memory earneddata = super.earned(_account);
         uint256 rewardCount = earneddata.length - 1;
         claimable = new EarnedData[](rewardCount);
 
         //remove index 0 as we dont need to report the write off tokens
         for (uint256 i = 1; i <= rewardCount; ) {
-            claimable[i-1].amount = earneddata[i].amount;
-            claimable[i-1].token = earneddata[i].token;
-            unchecked{ i += 1; }
+            claimable[i - 1].amount = earneddata[i].amount;
+            claimable[i - 1].token = earneddata[i].token;
+            unchecked {
+                i += 1;
+            }
         }
     }
 
-    function _checkAddToken(address _address) internal view virtual override returns(bool){
-        if(_address == address(collateral)) return false;
-        if(_address == address(debtToken)) return false;
+    function _checkAddToken(
+        address _address
+    ) internal view virtual override returns (bool) {
+        if (_address == address(collateral)) return false;
+        if (_address == address(debtToken)) return false;
         return true;
     }
 
@@ -430,7 +480,9 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         _newCurrentRateInfo.lastTimestamp = uint64(block.timestamp);
 
         // Write return values
-        InterestCalculationResults memory _results = _calculateInterest(_newCurrentRateInfo);
+        InterestCalculationResults memory _results = _calculateInterest(
+            _newCurrentRateInfo
+        );
 
         if (_results.isInterestUpdated) {
             _interestEarned = _results.interestEarned;
@@ -469,26 +521,32 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
             _results.totalBorrow = totalBorrow;
 
             // Time elapsed since last interest update
-            uint256 _deltaTime = block.timestamp - _currentRateInfo.lastTimestamp;
+            uint256 _deltaTime = block.timestamp -
+                _currentRateInfo.lastTimestamp;
 
             // Request new interest rate and full utilization rate from the rate calculator
-            (_results.newRate, _results.newShares) = IRateCalculator(rateCalculator).getNewRate(
-                address(collateral),
-                _deltaTime,
-                _currentRateInfo.lastShares
-            );
+            (_results.newRate, _results.newShares) = IRateCalculator(
+                rateCalculator
+            ).getNewRate(
+                    address(collateral),
+                    _deltaTime,
+                    _currentRateInfo.lastShares
+                );
 
             // Calculate interest accrued
-            _results.interestEarned = (_deltaTime * _results.totalBorrow.amount * _results.newRate) / RATE_PRECISION;
+            _results.interestEarned =
+                (_deltaTime * _results.totalBorrow.amount * _results.newRate) /
+                RATE_PRECISION;
 
             // Accrue interest (if any) and fees if no overflow
             if (
                 _results.interestEarned > 0 &&
-                _results.interestEarned + _results.totalBorrow.amount <= type(uint128).max
+                _results.interestEarned + _results.totalBorrow.amount <=
+                type(uint128).max
             ) {
                 // Increment totalBorrow by interestEarned
                 _results.totalBorrow.amount += uint128(_results.interestEarned);
-            }else{
+            } else {
                 //reset interest earned
                 _results.interestEarned = 0;
             }
@@ -512,7 +570,9 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         _currentRateInfo = currentRateInfo;
 
         // Calc interest
-        InterestCalculationResults memory _results = _calculateInterest(_currentRateInfo);
+        InterestCalculationResults memory _results = _calculateInterest(
+            _currentRateInfo
+        );
 
         // Write return values only if interest was updated and calculated
         if (_results.isInterestUpdated) {
@@ -562,20 +622,18 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @notice The ```_updateExchangeRate``` function retrieves the latest exchange rate. i.e how much collateral to buy 1e18 asset.
     /// @dev This function is invoked at most once per block as these queries can be expensive
     /// @return _exchangeRate The exchange rate
-    function _updateExchangeRate()
-        internal
-        returns (uint256 _exchangeRate)
-    {
+    function _updateExchangeRate() internal returns (uint256 _exchangeRate) {
         // Pull from storage to save gas and set default return values
         ExchangeRateInfo memory _exchangeRateInfo = exchangeRateInfo;
 
         // Short circuit if already updated this block
         if (_exchangeRateInfo.lastTimestamp != block.timestamp) {
             // Get the latest exchange rate from the oracle
-            _exchangeRate = IOracle(_exchangeRateInfo.oracle).getPrices(address(collateral));
+            _exchangeRate = IOracle(_exchangeRateInfo.oracle).getPrices(
+                address(collateral)
+            );
             //convert price of collateral as debt is priced in terms of collateral amount (inverse)
             _exchangeRate = 1e36 / _exchangeRate;
-
 
             // Effects: Bookkeeping and write to storage
             _exchangeRateInfo.lastTimestamp = uint96(block.timestamp);
@@ -586,7 +644,6 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
             // Use default return values if already updated this block
             _exchangeRate = _exchangeRateInfo.exchangeRate;
         }
-
     }
 
     // ============================================================================================
@@ -602,18 +659,22 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     //sync user collateral by removing account of userCollateralBalance based on
     //how many "claimable" redemption tokens are available to the user
     //should be called before anything with userCollateralBalance is used
-    function _syncUserRedemptions(address _account) internal{
+    function _syncUserRedemptions(address _account) internal {
         //sync rewards first
         _checkpoint(_account);
 
         //get token count (divide by LTV_PRECISION as precision is padded)
-        uint256 rTokens = claimable_reward[address(redemptionWriteOff)][_account] / LTV_PRECISION;
+        uint256 rTokens = claimable_reward[address(redemptionWriteOff)][
+            _account
+        ] / LTV_PRECISION;
         //reset claimables
         claimable_reward[address(redemptionWriteOff)][_account] = 0;
 
         //remove from collateral balance the number of rtokens the user has
         uint256 currentUserBalance = _userCollateralBalance[_account];
-        _userCollateralBalance[_account] = currentUserBalance >= rTokens ? currentUserBalance - rTokens : 0;
+        _userCollateralBalance[_account] = currentUserBalance >= rTokens
+            ? currentUserBalance - rTokens
+            : 0;
     }
 
     /// @notice The ```Borrow``` event is emitted when a borrower increases their position
@@ -634,23 +695,27 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @param _borrowAmount The amount of the Asset Token to borrow
     /// @param _receiver The address to receive the Asset Tokens
     /// @return _sharesAdded The amount of borrow shares the msg.sender will be debited
-    function _borrow(uint128 _borrowAmount, address _receiver) internal returns (uint256 _sharesAdded) {
+    function _borrow(
+        uint128 _borrowAmount,
+        address _receiver
+    ) internal returns (uint256 _sharesAdded) {
         // Get borrow accounting from storage to save gas
         VaultAccount memory _totalBorrow = totalBorrow;
 
-        if(_borrowAmount < minimumBorrowAmount){
+        if (_borrowAmount < minimumBorrowAmount) {
             revert InsufficientBorrowAmount();
         }
 
         //mint fees
-        uint256 debtForMint = (_borrowAmount * (LIQ_PRECISION + mintFee) / LIQ_PRECISION);
+        uint256 debtForMint = ((_borrowAmount * (LIQ_PRECISION + mintFee)) /
+            LIQ_PRECISION);
 
         // Check available capital
         uint256 _assetsAvailable = _totalDebtAvailable(_totalBorrow);
         if (_assetsAvailable < debtForMint) {
             revert InsufficientDebtAvailable(_assetsAvailable, debtForMint);
         }
-        
+
         // Calculate the number of shares to add based on the amount to borrow
         _sharesAdded = _totalBorrow.toShares(debtForMint, true);
 
@@ -665,13 +730,21 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         totalBorrow = _totalBorrow;
         _userBorrowShares[msg.sender] += _sharesAdded;
 
-        uint256 otherFees = debtForMint > _borrowAmount ? debtForMint - _borrowAmount : 0;
+        uint256 otherFees = debtForMint > _borrowAmount
+            ? debtForMint - _borrowAmount
+            : 0;
         if (otherFees > 0) claimableOtherFees += otherFees;
 
         // Interactions
         IResupplyRegistry(registry).mint(_receiver, _borrowAmount);
-        
-        emit Borrow(msg.sender, _receiver, _borrowAmount, _sharesAdded, otherFees);
+
+        emit Borrow(
+            msg.sender,
+            _receiver,
+            _borrowAmount,
+            _sharesAdded,
+            otherFees
+        );
     }
 
     /// @notice The ```borrow``` function allows a user to open/increase a borrow position
@@ -696,8 +769,15 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         // Only add collateral if necessary
         if (_underlyingAmount > 0) {
             //pull underlying and deposit in vault
-            underlying.safeTransferFrom(msg.sender, address(this), _underlyingAmount);
-            uint256 collateralShares = IERC4626(address(collateral)).deposit(_underlyingAmount, address(this));
+            underlying.safeTransferFrom(
+                msg.sender,
+                address(this),
+                _underlyingAmount
+            );
+            uint256 collateralShares = IERC4626(address(collateral)).deposit(
+                _underlyingAmount,
+                address(this)
+            );
             //add collateral to msg.sender
             _addCollateral(address(this), collateralShares, msg.sender);
         }
@@ -715,10 +795,18 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @param _sender The source of funds for the new collateral
     /// @param _collateralAmount The amount of Collateral Token to be transferred
     /// @param _borrower The borrower account for which the collateral should be credited
-    function _addCollateral(address _sender, uint256 _collateralAmount, address _borrower) internal {
+    function _addCollateral(
+        address _sender,
+        uint256 _collateralAmount,
+        address _borrower
+    ) internal {
         _userCollateralBalance[_borrower] += _collateralAmount;
         if (_sender != address(this)) {
-            collateral.safeTransferFrom(_sender, address(this), _collateralAmount);
+            collateral.safeTransferFrom(
+                _sender,
+                address(this),
+                _collateralAmount
+            );
         }
         //stake underlying
         _stakeUnderlying(_collateralAmount);
@@ -730,7 +818,10 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @dev msg.sender must call ERC20.approve() on the Collateral Token contract prior to invocation
     /// @param _collateralAmount The amount of Collateral Token to be added to borrower's position
     /// @param _borrower The account to be credited
-    function addCollateralVault(uint256 _collateralAmount, address _borrower) external nonReentrant {
+    function addCollateralVault(
+        uint256 _collateralAmount,
+        address _borrower
+    ) external nonReentrant {
         if (_borrower == address(0)) revert InvalidReceiver();
 
         _addInterest();
@@ -740,13 +831,19 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @notice Allows depositing in terms of underlying asset, and have it converted to collateral shares to the borrower's position.
     /// @param _amount The amount of the underlying asset to deposit.
     /// @param _borrower The address of the borrower whose collateral balance will be credited.
-    function addCollateral(uint256 _amount, address _borrower) external nonReentrant {
+    function addCollateral(
+        uint256 _amount,
+        address _borrower
+    ) external nonReentrant {
         if (_borrower == address(0)) revert InvalidReceiver();
 
         _addInterest();
 
         underlying.safeTransferFrom(msg.sender, address(this), _amount);
-        uint256 collateralShares = IERC4626(address(collateral)).deposit(_amount, address(this));
+        uint256 collateralShares = IERC4626(address(collateral)).deposit(
+            _amount,
+            address(this)
+        );
         _addCollateral(address(this), collateralShares, _borrower);
     }
 
@@ -764,8 +861,11 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @param _collateralAmount The amount of Collateral Token to remove from the borrower's position
     /// @param _receiver The address to receive the Collateral Token transferred
     /// @param _borrower The borrower whose account will be debited the Collateral amount
-    function _removeCollateral(uint256 _collateralAmount, address _receiver, address _borrower) internal {
-
+    function _removeCollateral(
+        uint256 _collateralAmount,
+        address _receiver,
+        address _borrower
+    ) internal {
         // Effects: write to state
         // NOTE: Following line will revert on underflow if _collateralAmount > userCollateralBalance
         _userCollateralBalance[_borrower] -= _collateralAmount;
@@ -819,7 +919,11 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
             _updateExchangeRate();
         }
         _removeCollateral(_collateralAmount, address(this), msg.sender);
-        IERC4626(address(collateral)).redeem(_collateralAmount, _receiver, address(this));
+        IERC4626(address(collateral)).redeem(
+            _collateralAmount,
+            _receiver,
+            address(this)
+        );
     }
 
     /// @notice The ```Repay``` event is emitted whenever a debt position is repaid
@@ -827,7 +931,12 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @param borrower The borrower whose account will be credited
     /// @param amountToRepay The amount of Asset token to be transferred
     /// @param shares The amount of Borrow Shares which will be debited from the borrower after repayment
-    event Repay(address indexed payer, address indexed borrower, uint256 amountToRepay, uint256 shares);
+    event Repay(
+        address indexed payer,
+        address indexed borrower,
+        uint256 amountToRepay,
+        uint256 shares
+    );
 
     /// @notice The ```_repay``` function is the internal implementation for repaying a borrow position
     /// @dev The payer must have called ERC20.approve() on the Asset Token contract prior to invocation
@@ -853,9 +962,12 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         // Effects: write user state
         uint256 usershares = _userBorrowShares[_borrower] - _shares;
         _userBorrowShares[_borrower] = usershares;
-    
+
         //check that any remaining user amount is greater than minimumBorrowAmount
-        if(usershares > 0 && _totalBorrow.toAmount(usershares, true) < minimumBorrowAmount){
+        if (
+            usershares > 0 &&
+            _totalBorrow.toAmount(usershares, true) < minimumBorrowAmount
+        ) {
             revert InsufficientBorrowAmount();
         }
 
@@ -876,7 +988,10 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     /// @param _shares The number of Borrow Shares which will be repaid by the call
     /// @param _borrower The account for which the debt will be reduced
     /// @return _amountToRepay The amount of Asset Tokens which were burned to repay the Borrow Shares
-    function repay(uint256 _shares, address _borrower) external nonReentrant returns (uint256 _amountToRepay) {
+    function repay(
+        uint256 _shares,
+        address _borrower
+    ) external nonReentrant returns (uint256 _amountToRepay) {
         if (_borrower == address(0)) revert InvalidReceiver();
 
         // Accrue interest if necessary
@@ -887,7 +1002,13 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         _amountToRepay = _totalBorrow.toAmount(_shares, true);
 
         // Execute repayment effects
-        _repay(_totalBorrow, _amountToRepay.toUint128(), _shares.toUint128(), msg.sender, _borrower);
+        _repay(
+            _totalBorrow,
+            _amountToRepay.toUint128(),
+            _shares.toUint128(),
+            msg.sender,
+            _borrower
+        );
     }
 
     // ============================================================================================
@@ -914,14 +1035,20 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         uint256 _amount,
         uint256 _totalFeePct,
         address _receiver
-    ) external nonReentrant returns(address _collateralToken, uint256 _collateralFreed){
+    )
+        external
+        nonReentrant
+        returns (address _collateralToken, uint256 _collateralFreed)
+    {
         //check sender. must go through the registry's redemptionHandler
-        if(msg.sender != IResupplyRegistry(registry).redemptionHandler()) revert InvalidRedemptionHandler();
+        if (msg.sender != IResupplyRegistry(registry).redemptionHandler())
+            revert InvalidRedemptionHandler();
 
-        if (_receiver == address(0) || _receiver == address(this)) revert InvalidReceiver();
+        if (_receiver == address(0) || _receiver == address(this))
+            revert InvalidReceiver();
 
-        if(_amount < minimumRedemption){
-          revert MinimumRedemption();
+        if (_amount < minimumRedemption) {
+            revert MinimumRedemption();
         }
 
         // accrue interest if necessary
@@ -933,13 +1060,18 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         // add 0.5$ to protocol earned fees
         // return 99$ of collateral
         // burn $100 of stables
-        uint256 valueToRedeem = _amount * (EXCHANGE_PRECISION - _totalFeePct) / EXCHANGE_PRECISION;
-        uint256 protocolFee = (_amount - valueToRedeem) * protocolRedemptionFee / EXCHANGE_PRECISION;
+        uint256 valueToRedeem = (_amount *
+            (EXCHANGE_PRECISION - _totalFeePct)) / EXCHANGE_PRECISION;
+        uint256 protocolFee = ((_amount - valueToRedeem) *
+            protocolRedemptionFee) / EXCHANGE_PRECISION;
         uint256 debtReduction = _amount - protocolFee; // protocol fee portion is not burned
 
         //check if theres enough debt to write off
         VaultAccount memory _totalBorrow = totalBorrow;
-        if(debtReduction > _totalBorrow.amount || _totalBorrow.amount - debtReduction < minimumLeftoverDebt ){
+        if (
+            debtReduction > _totalBorrow.amount ||
+            _totalBorrow.amount - debtReduction < minimumLeftoverDebt
+        ) {
             revert InsufficientDebtToRedeem(); // size of request exceeeds total pair debt
         }
 
@@ -947,7 +1079,10 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
 
         //if after many redemptions the amount to shares ratio has deteriorated too far, then refactor
         //cast to uint256 to reduce chance of overflow
-        if(uint256(_totalBorrow.amount) * SHARE_REFACTOR_PRECISION < _totalBorrow.shares){
+        if (
+            uint256(_totalBorrow.amount) * SHARE_REFACTOR_PRECISION <
+            _totalBorrow.shares
+        ) {
             _increaseRewardEpoch(); //will do final checkpoint on previous total supply
             _totalBorrow.shares /= uint128(SHARE_REFACTOR_PRECISION);
         }
@@ -960,8 +1095,9 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         // Update exchange rate
         uint256 _exchangeRate = _updateExchangeRate();
         //calc collateral units
-        _collateralFreed = ((valueToRedeem * _exchangeRate) / EXCHANGE_PRECISION);
-        
+        _collateralFreed = ((valueToRedeem * _exchangeRate) /
+            EXCHANGE_PRECISION);
+
         _unstakeUnderlying(_collateralFreed);
         _collateralToken = address(collateral);
         IERC20(_collateralToken).safeTransfer(_receiver, _collateralFreed);
@@ -970,7 +1106,13 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         //padded with LTV_PRECISION for extra precision
         redemptionWriteOff.mint(_collateralFreed * LTV_PRECISION);
 
-        emit Redeemed(_caller, _amount, _collateralFreed, protocolFee, debtReduction);
+        emit Redeemed(
+            _caller,
+            _amount,
+            _collateralFreed,
+            protocolFee,
+            debtReduction
+        );
     }
 
     // ============================================================================================
@@ -995,8 +1137,9 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
     function liquidate(
         address _borrower
     ) external nonReentrant returns (uint256 _collateralForLiquidator) {
-        address liquidationHandler = IResupplyRegistry(registry).liquidationHandler();
-        if(msg.sender != liquidationHandler) revert InvalidLiquidator();
+        address liquidationHandler = IResupplyRegistry(registry)
+            .liquidationHandler();
+        if (msg.sender != liquidationHandler) revert InvalidLiquidator();
 
         if (_borrower == address(0)) revert InvalidReceiver();
 
@@ -1019,25 +1162,33 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
 
         // Checks & Calculations
         // Determine the liquidation amount in collateral units (i.e. how much debt liquidator is going to repay)
-        uint256 _liquidationAmountInCollateralUnits = ((_totalBorrow.toAmount(_borrowerShares, false) *
-            _exchangeRate) / EXCHANGE_PRECISION);
+        uint256 _liquidationAmountInCollateralUnits = ((_totalBorrow.toAmount(
+            _borrowerShares,
+            false
+        ) * _exchangeRate) / EXCHANGE_PRECISION);
 
         // add fee for liquidation
-        _collateralForLiquidator = (_liquidationAmountInCollateralUnits *
-            (LIQ_PRECISION + liquidationFee)) / LIQ_PRECISION;
+        _collateralForLiquidator =
+            (_liquidationAmountInCollateralUnits *
+                (LIQ_PRECISION + liquidationFee)) /
+            LIQ_PRECISION;
 
         // clamp to user collateral balance as we cant take more than that
-        _collateralForLiquidator = _collateralForLiquidator > _collateralBalance ? _collateralBalance : _collateralForLiquidator;
+        _collateralForLiquidator = _collateralForLiquidator > _collateralBalance
+            ? _collateralBalance
+            : _collateralForLiquidator;
 
         // Calculated here for use during repayment, grouped with other calcs before effects start
-        uint128 _amountLiquidatorToRepay = (_totalBorrow.toAmount(_borrowerShares, true)).toUint128();
+        uint128 _amountLiquidatorToRepay = (
+            _totalBorrow.toAmount(_borrowerShares, true)
+        ).toUint128();
 
         emit Liquidate(
-                _borrower,
-                _collateralForLiquidator,
-                _borrowerShares,
-                _amountLiquidatorToRepay
-            );
+            _borrower,
+            _collateralForLiquidator,
+            _borrowerShares,
+            _amountLiquidatorToRepay
+        );
 
         // Effects & Interactions
         // repay using address(0) to skip burning (liquidationHandler will burn from insurance pool)
@@ -1051,10 +1202,18 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
 
         // Collateral is removed on behalf of borrower and sent to liquidationHandler
         // NOTE: isSolvent above checkpoints user with _syncUserRedemptions before removing collateral
-        _removeCollateral(_collateralForLiquidator, liquidationHandler, _borrower);
+        _removeCollateral(
+            _collateralForLiquidator,
+            liquidationHandler,
+            _borrower
+        );
 
         //call liquidation handler to distribute and burn debt
-        ILiquidationHandler(liquidationHandler).processLiquidationDebt(address(collateral), _collateralForLiquidator, _amountLiquidatorToRepay);
+        ILiquidationHandler(liquidationHandler).processLiquidationDebt(
+            address(collateral),
+            _collateralForLiquidator,
+            _amountLiquidatorToRepay
+        );
     }
 
     // ============================================================================================
@@ -1091,7 +1250,12 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         uint256 _initialUnderlyingAmount,
         uint256 _amountCollateralOutMin,
         address[] memory _path
-    ) external nonReentrant isSolvent(msg.sender) returns (uint256 _totalCollateralBalance) {
+    )
+        external
+        nonReentrant
+        isSolvent(msg.sender)
+        returns (uint256 _totalCollateralBalance)
+    {
         // Accrue interest if necessary
         _addInterest();
 
@@ -1113,18 +1277,30 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
 
         // Add initial underlying
         if (_initialUnderlyingAmount > 0) {
-            underlying.safeTransferFrom(msg.sender, address(this), _initialUnderlyingAmount);
-            uint256 collateralShares = IERC4626(address(collateral)).deposit(_initialUnderlyingAmount, address(this));
+            underlying.safeTransferFrom(
+                msg.sender,
+                address(this),
+                _initialUnderlyingAmount
+            );
+            uint256 collateralShares = IERC4626(address(collateral)).deposit(
+                _initialUnderlyingAmount,
+                address(this)
+            );
             _addCollateral(address(this), collateralShares, msg.sender);
             _totalCollateralBalance = collateralShares;
         }
 
         // Debit borrowers account
         // setting recipient to _swapperAddress allows us to skip a transfer (debt still goes to msg.sender)
-        uint256 _borrowShares = _borrow(_borrowAmount.toUint128(), _swapperAddress);
+        uint256 _borrowShares = _borrow(
+            _borrowAmount.toUint128(),
+            _swapperAddress
+        );
 
         // Even though swappers are trusted, we verify the balance before and after swap
-        uint256 _initialCollateralBalance = _collateral.balanceOf(address(this));
+        uint256 _initialCollateralBalance = _collateral.balanceOf(
+            address(this)
+        );
         ISwapper(_swapperAddress).swap(
             msg.sender,
             _borrowAmount,
@@ -1135,9 +1311,13 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
 
         // Note: VIOLATES CHECKS-EFFECTS-INTERACTION pattern, make sure function is NONREENTRANT
         // Effects: bookkeeping & write to state
-        uint256 _amountCollateralOut = _finalCollateralBalance - _initialCollateralBalance;
+        uint256 _amountCollateralOut = _finalCollateralBalance -
+            _initialCollateralBalance;
         if (_amountCollateralOut < _amountCollateralOutMin) {
-            revert SlippageTooHigh(_amountCollateralOutMin, _amountCollateralOut);
+            revert SlippageTooHigh(
+                _amountCollateralOutMin,
+                _amountCollateralOut
+            );
         }
 
         // address(this) as _sender means no transfer occurs as the pair has already received the collateral during swap
@@ -1204,7 +1384,7 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
         //toShares below will also return an incorrect value.
         //in case of a full redemption, users can use the normal repayAsset with 0 cost
         //or just withdraw collateral via removeCollateral
-        if(_totalBorrow.amount == 0){
+        if (_totalBorrow.amount == 0) {
             revert InsufficientBorrowAmount();
         }
 
@@ -1229,30 +1409,40 @@ abstract contract ResupplyPairCore is CoreOwnable, ResupplyPairConstants, Reward
             revert SlippageTooHigh(_amountOutMin, _amountOut);
         }
 
-        
         uint256 _sharesToRepay = _totalBorrow.toShares(_amountOut, false);
 
         //check if over user borrow shares or will revert
         uint256 currentUserBorrowShares = _userBorrowShares[msg.sender];
-        if(_sharesToRepay > currentUserBorrowShares){
+        if (_sharesToRepay > currentUserBorrowShares) {
             //clamp
             _sharesToRepay = currentUserBorrowShares;
 
             //readjust token amount since shares changed
             _amountOut = _totalBorrow.toAmount(_sharesToRepay, true);
         }
-        
 
         // Effects: write to state
-        _repay(_totalBorrow, _amountOut.toUint128(), _sharesToRepay.toUint128(), address(this), msg.sender);
+        _repay(
+            _totalBorrow,
+            _amountOut.toUint128(),
+            _sharesToRepay.toUint128(),
+            address(this),
+            msg.sender
+        );
 
         //check for leftover stables that didnt go toward repaying debt
         uint256 leftover = debtToken.balanceOf(address(this)) - _initialBalance;
-        if(leftover > 0){
+        if (leftover > 0) {
             //send change back to user
             debtToken.transfer(msg.sender, leftover);
         }
 
-        emit RepayWithCollateral(msg.sender, _swapperAddress, _collateralToSwap, _amountOut, _sharesToRepay);
+        emit RepayWithCollateral(
+            msg.sender,
+            _swapperAddress,
+            _collateralToSwap,
+            _amountOut,
+            _sharesToRepay
+        );
     }
 }
