@@ -1,0 +1,128 @@
+{
+  "0xc5184cccf85b81eddc661330acb3e41bd89f34a1": {
+    "ContractName": "ResupplyPair",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "8c03c20a9abb4c6ab67ae0f22fe80170733de3cd77a1affd2569ad4a4e1e0bcc"
+  },
+  "0xa346ba5e838d6ee40204a69549c81ab982644150": {
+    "ContractName": "BasicVaultOracle",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "36fe41f89d6e0bc3c608740c31ed4ee6f48a67bbc0195642475915a40c3f3102"
+  },
+  "0x8e3009b59200668e1efda0a2f2ac42b24baa2982": {
+    "ContractName": "Vault",
+    "CompilerVersion": "vyper:0.3.10",
+    "Proxy": "2",
+    "Implementation": "0xc014f34d5ba10b6799d76b0f5acdeee577805085",
+    "verifiedSourceSHA256": "63788e3845e5f6cfc13b10f5c8e0c665a5aa8b7d79d342f3dd148da576de5e3a"
+  },
+  "0x0837e20d15585b4ca5c1a3fcedccf8f72855cb56": {
+    "ContractName": "ResupplyPair",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "dda2ff9b5f682fc41b82f7452ce6a39562753b6c4a88f13e021dd6007ce8bdc8"
+  },
+  "0x2d4e8bff0c23571016d7b329b9fd76441f4a37c9": {
+    "ContractName": "SimpleReceiver",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "22e696a3d4e9610cf0a6925b329550a693089cf13d6caf1c967de66a6debb08c"
+  },
+  "0x1d9e146501cdcfad72afa90c1144181036ca5379": {
+    "ContractName": "IncentivesMultiClaimer",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "a1c8431507b1135a1361b2413daf5aba60f4e2b58dcacaef88e906d733566038"
+  },
+  "0xfe11a5009f2121622271e7dd0fd470264e076af6": {
+    "ContractName": "SafeProxy",
+    "CompilerVersion": "v0.7.6+commit.7338295f",
+    "Proxy": "1",
+    "Implementation": "0x41675c099f32341bf84bfc5382af534df5c7461a",
+    "verifiedSourceSHA256": "4f1561cf53595db0e445864766ad58233879360142480049b3fd74e78b282863"
+  },
+  "0xf403c135812408bfbe8713b5a23a04b3d48aae31": {
+    "ContractName": "Booster",
+    "CompilerVersion": "v0.6.12+commit.27d51765",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "060e83aa099e5b9f8f9b22772bd89f34ea27906697aa594474c31cfc0863c1b1"
+  },
+  "0xc07e000044f95655c11fda4cd37f70a94d7e0a7d": {
+    "ContractName": "Core",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "422a6b264e803c37a03d89323fda422ac4a7bbf624c19789abe039f071722f64"
+  },
+  "0x33333333df05b0d52edd13d230461e5a0f5a4706": {
+    "ContractName": "EmissionsController",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "74f1534acb5a46675a7672e1e19b0bdbd4dba60803b4ac2a5936f4935c24f1f0"
+  },
+  "0xaaaa0013e2ec451f76816d1e0a02aba596dd9251": {
+    "ContractName": "PriceWatcher",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "35c3e471fffe2deb92d81bee13ecd07b60bf2f08d7536c1e68162387b355fd0f"
+  },
+  "0x10101010e0c3171d894b71b3400668af311e7d94": {
+    "ContractName": "ResupplyRegistry",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "4dc0aa82a958293643be1bcb7df02a7da6f5a1e0313a8ac912dc9e1dbfff962b"
+  },
+  "0x0950000465476f4470e74aed93e7dd414012bb7d": {
+    "ContractName": "BorrowLimitController",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "1710567a2578208d6dd56bdcf35f8d538a4ff33590ce7341efe1e438affc0e9b"
+  },
+  "0x3da0f110079012387f47c6fc6e878f10262e300a": {
+    "ContractName": "LlamaLend V2 Vault",
+    "CompilerVersion": "vyper:0.4.3",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "c50c98168a516530049bce947b7d014cdd3312960fbf0792e7dc4f77dea5784f"
+  },
+  "0xd3d5c6fc52f3bc29c3ab017d57d9a94a036ca90f": {
+    "ContractName": "InterestRateCalculatorV2",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "8f77d841bd4a33956541220dfe09d330b41163e35ae006de8d2419ae79320f38"
+  },
+  "0x41675c099f32341bf84bfc5382af534df5c7461a": {
+    "ContractName": "Safe",
+    "CompilerVersion": "v0.7.6+commit.7338295f",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "a01a0cfbf19e9784b9170b981e407313f88b9aa06ef5a7047bcfe8fea4218562"
+  },
+  "0x11111111063874ce8dc6232cb5c1c849359476e6": {
+    "ContractName": "Voter",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "0",
+    "Implementation": "",
+    "verifiedSourceSHA256": "e1c28a8911381466c4bd0b500542a887e3d878e3f675f4e2661d940e1a379bd8"
+  },
+  "0xc9a9c21f8740684129d271ad1007e87e24858c59": {
+    "ContractName": "SimpleReceiver",
+    "CompilerVersion": "v0.8.28+commit.7893614a",
+    "Proxy": "2",
+    "Implementation": "0x2d4e8bff0c23571016d7b329b9fd76441f4a37c9",
+    "verifiedSourceSHA256": "22e696a3d4e9610cf0a6925b329550a693089cf13d6caf1c967de66a6debb08c"
+  }
+}
