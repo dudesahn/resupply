@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2436" height="800" viewBox="0 0 974 320" font-family="Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 8 6" refX="8" refY="3"
+      markerWidth="4" markerHeight="3" orient="auto">
+      <path d="M0.5,0.5 L7,3 L0.5,5.5" fill="none" stroke="#94A3B8"
+        stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+    </marker>
+    <filter id="shadow" x="-6%" y="-8%" width="112%" height="128%">
+      <feDropShadow dx="0" dy="0.5" stdDeviation="0.8"
+        flood-color="#000" flood-opacity="0.05"/>
+    </filter>
+  </defs>
+  <rect width="974" height="320" fill="#F8F9FB" rx="3"/>
+  <text x="487" y="11" text-anchor="middle" font-size="6" font-weight="700" fill="#1E293B">Resupply Protocol Architecture</text>
+  <rect x="412" y="16" width="150" height="10" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <rect x="417" y="18.5" width="5" height="5" rx="2.5" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <text x="425" y="22.5" font-size="3.5" fill="#1E293B">Actor</text>
+  <rect x="457" y="18.5" width="5" height="5" rx="1.5" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <rect x="458" y="19.5" width="0.8" height="3" rx="0.4" fill="#3B82F6"/>
+  <text x="465" y="22.5" font-size="3.5" fill="#1E293B">Protocol</text>
+  <rect x="505" y="18.5" width="5" height="5" rx="1.5" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <rect x="506" y="19.5" width="0.8" height="3" rx="0.4" fill="#F59E0B"/>
+  <text x="513" y="22.5" font-size="3.5" fill="#1E293B">External</text>
+  <rect x="20.0" y="84.0" width="934.5" height="102.0" rx="5" fill="#EDEEF2"/>
+  <text x="951.5" y="89.0" text-anchor="end" font-size="3.5" fill="#94A3B8" font-weight="500">Market Layer</text>
+  <rect x="20.0" y="208.0" width="934.5" height="102.0" rx="5" fill="#EDEEF2"/>
+  <text x="951.5" y="213.0" text-anchor="end" font-size="3.5" fill="#94A3B8" font-weight="500">External Systems</text>
+  <rect x="20.0" y="84.0" width="934.5" height="40.0" rx="5" fill="#EDEEF2"/>
+  <text x="951.5" y="89.0" text-anchor="end" font-size="3.5" fill="#94A3B8" font-weight="500">Control Layer</text>
+  <rect x="20.0" y="208.0" width="934.5" height="40.0" rx="5" fill="#EDEEF2"/>
+  <text x="951.5" y="213.0" text-anchor="end" font-size="3.5" fill="#94A3B8" font-weight="500">Support Layer</text>
+  <rect x="20.0" y="22.0" width="934.5" height="34.0" rx="5" fill="#EDEEF2"/>
+  <text x="951.5" y="27.0" text-anchor="end" font-size="3.5" fill="#94A3B8" font-weight="500">Protocol Actors</text>
+  <path d="M101.2,46.0 C101.2,70.0 151.0,70.0 151.0,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M268.7,46.0 C268.7,70.0 337.0,70.0 337.0,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M397.1,46.0 C397.1,70.0 337.0,70.0 337.0,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M527.3,46.0 C527.3,70.0 503.2,70.0 503.2,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M657.5,46.0 C657.5,70.0 638.8,70.0 638.8,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M151.0,114.0 C151.0,135.0 391.8,135.0 391.8,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M479.2,174.0 C556.7,188.0 660.0,188.0 737.6,176.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M151.0,114.0 C151.0,135.0 177.0,135.0 177.0,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M585.6,112.0 C479.3,134.0 337.6,134.0 231.2,114.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M337.0,114.0 C337.0,135.0 391.8,135.0 391.8,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M420.8,112.0 C508.8,130.0 626.1,130.0 714.0,114.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M608.4,156.0 C608.4,135.0 803.2,135.0 803.2,114.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M503.2,114.0 C503.2,135.0 608.4,135.0 608.4,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M638.8,114.0 C638.8,135.0 608.4,135.0 608.4,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M855.3,218.0 C855.3,197.0 826.8,197.0 826.8,176.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M177.0,176.0 C177.0,197.0 365.7,197.0 365.7,218.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M608.4,176.0 C608.4,197.0 694.5,197.0 694.5,218.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M608.4,176.0 C608.4,197.0 530.1,197.0 530.1,218.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M391.8,176.0 C391.8,197.0 530.1,197.0 530.1,218.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M694.5,238.0 C694.5,259.0 547.6,259.0 547.6,280.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M530.1,238.0 C530.1,259.0 547.6,259.0 547.6,280.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M855.3,238.0 C855.3,259.0 419.2,259.0 419.2,280.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M855.3,238.0 C855.3,259.0 751.6,259.0 751.6,280.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M190.5,238.0 C190.5,259.0 86.8,259.0 86.8,280.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M190.5,238.0 C190.5,259.0 227.8,259.0 227.8,280.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M190.5,238.0 C190.5,259.0 419.2,259.0 419.2,280.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <g filter="url(#shadow)">
+    <rect x="37.2" y="32.0" width="128.0" height="14" rx="7" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <text x="101.2" y="40.8" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Protocol Users</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="222.7" y="32.0" width="92.0" height="14" rx="7" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <text x="268.7" y="40.8" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">RSUP Governance</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="336.7" y="32.0" width="120.8" height="14" rx="7" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <text x="397.1" y="40.8" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Privileged Operators</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="479.5" y="32.0" width="95.6" height="14" rx="7" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <text x="527.3" y="40.8" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Keeper Callers</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="597.1" y="32.0" width="120.8" height="14" rx="7" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <text x="657.5" y="40.8" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Liquidation Searchers</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="70.8" y="94.0" width="160.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="73.8" y="97.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="151.0" y="103.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Lending Markets</text>
+    <text x="151.0" y="108.5" text-anchor="middle" font-size="3.5" fill="#64748B">ResupplyPair / PairCore / WriteOffToken</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="253.2" y="94.0" width="167.6" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="256.2" y="97.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="337.0" y="103.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Core Executor</text>
+    <text x="337.0" y="108.5" text-anchor="middle" font-size="3.5" fill="#64748B">Core / Voter / Guardian / UpgradeOperator</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="714.0" y="94.0" width="178.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="717.0" y="97.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="803.2" y="103.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Treasury Controls</text>
+    <text x="803.2" y="108.5" text-anchor="middle" font-size="3.5" fill="#64748B">Treasury / TreasuryManager / Diversification</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="442.8" y="94.0" width="120.8" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="445.8" y="97.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="503.2" y="103.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Maintenance Router</text>
+    <text x="503.2" y="108.5" text-anchor="middle" font-size="3.5" fill="#64748B">Keeper / KeeperV1 / KeeperV2</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="585.6" y="94.0" width="106.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="588.6" y="97.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="638.8" y="103.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Liquidation Router</text>
+    <text x="638.8" y="108.5" text-anchor="middle" font-size="3.5" fill="#64748B">LiquidationHandler</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="304.4" y="156.0" width="174.8" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="307.4" y="159.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="391.8" y="165.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Protocol Registry</text>
+    <text x="391.8" y="170.5" text-anchor="middle" font-size="3.5" fill="#64748B">ResupplyRegistry / PairDeployer / PairAdder</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="737.6" y="156.0" width="178.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="740.6" y="159.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="826.8" y="165.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Peg Operations</text>
+    <text x="826.8" y="170.5" text-anchor="middle" font-size="3.5" fill="#64748B">Stablecoin / RedemptionHandler / ReusdOracle</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="71.6" y="156.0" width="210.8" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="74.6" y="159.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="177.0" y="165.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Risk Inputs</text>
+    <text x="177.0" y="170.5" text-anchor="middle" font-size="3.5" fill="#64748B">VaultOracle / UnderlyingOracle / PriceWatcher / Rates</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="501.2" y="156.0" width="214.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="504.2" y="159.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="608.4" y="165.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Rewards Insurance</text>
+    <text x="608.4" y="170.5" text-anchor="middle" font-size="3.5" fill="#64748B">InsurancePool / FeeDeposit / RewardHandler / Emissions</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="86.9" y="218.0" width="207.2" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="89.9" y="221.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="190.5" y="227.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Curve Operations</text>
+    <text x="190.5" y="232.5" text-anchor="middle" font-size="3.5" fill="#64748B">CurveLendFactory / CurveLendOperator / VeCrvOperator</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="644.9" y="218.0" width="99.2" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="647.9" y="221.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="694.5" y="227.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Savings Vault</text>
+    <text x="694.5" y="232.5" text-anchor="middle" font-size="3.5" fill="#64748B">sreUSD / LinearRewards</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="437.3" y="218.0" width="185.6" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="440.3" y="221.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="530.1" y="227.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Staking Vesting</text>
+    <text x="530.1" y="232.5" text-anchor="middle" font-size="3.5" fill="#64748B">GovToken / GovStaker / VestManager / Retention</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="766.1" y="218.0" width="178.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="769.1" y="221.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="855.3" y="227.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Swap Adapters</text>
+    <text x="855.3" y="232.5" text-anchor="middle" font-size="3.5" fill="#64748B">Swapper / RouterSwapper / RedemptionOperator</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="316.1" y="218.0" width="99.2" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="319.1" y="221.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="365.7" y="227.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">External Oracles</text>
+    <text x="365.7" y="232.5" text-anchor="middle" font-size="3.5" fill="#64748B">Curve / Chainlink Data</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="30.0" y="280.0" width="113.6" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="33.0" y="283.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="86.8" y="289.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">External Vaults</text>
+    <text x="86.8" y="294.5" text-anchor="middle" font-size="3.5" fill="#64748B">ERC4626 Lending Collateral</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="364.2" y="280.0" width="110.0" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="367.2" y="283.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="419.2" y="289.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Curve Convex</text>
+    <text x="419.2" y="294.5" text-anchor="middle" font-size="3.5" fill="#64748B">Pools / Booster / Rewards</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="496.2" y="280.0" width="102.8" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="499.2" y="283.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="547.6" y="289.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">LayerZero Network</text>
+    <text x="547.6" y="294.5" text-anchor="middle" font-size="3.5" fill="#64748B">Endpoint / Remote Peers</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="710.4" y="280.0" width="82.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="713.4" y="283.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="751.6" y="289.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Flash Lenders</text>
+    <text x="751.6" y="294.5" text-anchor="middle" font-size="3.5" fill="#64748B">ERC3156 Liquidity</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="165.6" y="280.0" width="124.4" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="168.6" y="283.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="227.8" y="289.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Prisma Curve</text>
+    <text x="227.8" y="294.5" text-anchor="middle" font-size="3.5" fill="#64748B">Escrow / Voter / Distributors</text>
+  </g>
+  <rect x="103.7" y="65.0" width="44.8" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="126.1" y="70.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">supply collateral</text>
+  <rect x="281.7" y="65.0" width="42.4" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="302.9" y="70.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">signal proposals</text>
+  <rect x="343.5" y="65.0" width="47.2" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="367.1" y="70.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">invoke permissions</text>
+  <rect x="496.5" y="65.0" width="37.6" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="515.3" y="70.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">trigger upkeep</text>
+  <rect x="623.4" y="65.0" width="49.6" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="648.2" y="70.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">request liquidation</text>
+  <rect x="251.4" y="130.0" width="40.0" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="271.4" y="135.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">request minting</text>
+  <rect x="587.2" y="187.0" width="42.4" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="608.4" y="192.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">mint stablecoins</text>
+  <rect x="147.6" y="130.0" width="32.8" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="164.0" y="135.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">consume risk</text>
+  <rect x="383.6" y="133.0" width="49.6" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="408.4" y="138.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">liquidate positions</text>
+  <rect x="340.8" y="126.0" width="47.2" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="364.4" y="131.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">configure registry</text>
+  <rect x="543.8" y="129.0" width="47.2" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="567.4" y="134.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">authorize treasury</text>
+  <rect x="687.0" y="130.0" width="37.6" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="705.8" y="135.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">route treasury</text>
+  <rect x="537.0" y="122.0" width="37.6" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="555.8" y="127.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">trigger epochs</text>
+  <rect x="606.0" y="130.0" width="35.2" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="623.6" y="135.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">burn reserves</text>
+  <rect x="816.2" y="192.0" width="49.6" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="841.0" y="197.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">execute redemptions</text>
+  <rect x="254.9" y="192.0" width="32.8" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="271.3" y="197.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">query prices</text>
+  <rect x="632.6" y="192.0" width="37.6" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="651.4" y="197.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">stream savings</text>
+  <rect x="552.8" y="196.0" width="32.8" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="569.2" y="201.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">fund staking</text>
+  <rect x="440.9" y="192.0" width="40.0" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="460.9" y="197.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">resolve staking</text>
+  <rect x="603.4" y="254.0" width="35.2" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="621.0" y="259.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">bridge shares</text>
+  <rect x="516.4" y="254.0" width="44.8" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="538.8" y="259.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">bridge governance</text>
+  <rect x="617.2" y="246.0" width="40.0" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="637.2" y="251.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">route liquidity</text>
+  <rect x="781.0" y="254.0" width="44.8" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="803.4" y="259.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">source flashloans</text>
+  <rect x="119.8" y="254.0" width="37.6" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="138.6" y="259.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">deploy capital</text>
+  <rect x="192.7" y="254.0" width="32.8" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="209.1" y="259.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">manage veCRV</text>
+  <rect x="287.2" y="254.0" width="35.2" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="304.8" y="259.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">claim rewards</text>
+</svg>
